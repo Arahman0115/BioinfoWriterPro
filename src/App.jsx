@@ -13,9 +13,10 @@ import SettingsPage from './SettingsPage';
 import DemoPage from './DemoPage';
 import Research from './Research';
 import ResearchCross from './ResearchCross';
+import GenBank from './GenBank';
 import { AnimatePresence, motion } from 'framer-motion';
 import GeneralSearch from './GeneralSearch';
-
+import Mafft from './Mafft';
 const pageVariants = {
   initial: {
     opacity: 0, // Start fully transparent
@@ -62,7 +63,9 @@ const App = () => {
           <Route path="/writer" element={<AnimatedRoute><WriterPage /></AnimatedRoute>} />
           <Route path="/settings" element={<AnimatedRoute><SettingsPage /></AnimatedRoute>} />
           <Route path="/research" element={<AnimatedRoute><Research /></AnimatedRoute>} />
+          <Route path="/genbank-search" element={<AnimatedRoute><GenBank /></AnimatedRoute>} />
           <Route path="/general-search" element={<AnimatedRoute><GeneralSearch /></AnimatedRoute>} />
+          <Route path="/mafft" element={<AnimatedRoute><Mafft /></AnimatedRoute>} />
           <Route path="/research-cross" element={<AnimatedRoute><ResearchCross /></AnimatedRoute>} />
           <Route path="/demo" element={<AnimatedRoute><DemoPage /></AnimatedRoute>} />
           <Route path="/Homepage" element={

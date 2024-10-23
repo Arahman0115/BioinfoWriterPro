@@ -1,8 +1,8 @@
 /* General container styling */
 .demo-container {
-    background-color: #000000;
+    background-color: #1a1a1a;
     /* Dark background */
-    color: #fff;
+    color: #ffffff;
     /* White text */
     padding: 40px;
     width: 100%;
@@ -19,8 +19,8 @@
 }
 
 .demo-header {
-    color: #1882fc;
-    /* Blue color for the header */
+    color: #00a86b;
+    /* Green color for the header */
     margin: 0 auto;
     font-size: 2.5em;
     font-weight: 300;
@@ -30,7 +30,7 @@
 .demo-description {
     text-align: center;
     margin-bottom: 40px;
-    color: #b3b3b3;
+    color: #cccccc;
     font-size: 1.2em;
     max-width: 800px;
     margin-left: auto;
@@ -48,7 +48,7 @@
 
 .homebutton {
     background-color: transparent;
-    border: 2px solid #1882fc;
+    border: 2px solid #00a86b;
     border-radius: 50%;
     width: 40px;
     height: 40px;
@@ -57,18 +57,18 @@
     justify-content: center;
     cursor: pointer;
     transition: all 0.3s ease;
-    color: #1882fc;
+    color: #00a86b;
 }
 
 .homebutton:hover {
-    background-color: #1882fc;
-
+    background-color: #00a86b;
+    color: #ffffff;
 }
 
 /* Individual panels */
 .panel {
-    background-color: #1e1e1e;
-    border: 1px solid #333;
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a3a;
     border-radius: 8px;
     overflow: hidden;
     transition: all 0.3s ease;
@@ -79,15 +79,15 @@
     padding: 20px;
     font-size: 1.2em;
     cursor: pointer;
-    background-color: #252525;
-    color: #1882fc;
+    background-color: #333333;
+    color: #00a86b;
     display: flex;
     align-items: center;
     transition: all 0.3s ease;
 }
 
 .panel-title:hover {
-    background-color: #2a2a2a;
+    background-color: #3a3a3a;
 }
 
 .panel-title span {
@@ -97,8 +97,8 @@
 /* Panel content styling */
 .panel-content {
     padding: 20px;
-    background-color: #1e1e1e;
-    color: #ccc;
+    background-color: #2a2a2a;
+    color: #cccccc;
     animation: slideDown 0.3s ease-out;
 }
 
@@ -111,7 +111,7 @@
 }
 
 code {
-    background-color: #333;
+    background-color: #3a3a3a;
     padding: 2px 5px;
     border-radius: 3px;
     font-family: 'Courier New', monospace;

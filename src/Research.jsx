@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { collection, getDocs, addDoc } from 'firebase/firestore';
-import { auth, db } from './firebase'; // Assuming your firebase.js exports auth and db
+import { auth, db } from './firebase';
 import axios from 'axios';
 import ProjectPopup from './ProjectPopup';
 import './Research.css';
@@ -138,80 +138,76 @@ const Research = () => {
 
     return (
         <div className="research-container">
-            <button onClick={handleHomePress} className="res-home-button">
+            <button onClick={handleHomePress} className="research-home-button">
                 <ChevronLeft size={20} />
             </button>
-            <h1>PubMed Article Search</h1>
+            <h1 className='research-header'>PubMed Article Search</h1>
 
-            {/* Unified Search Bar and Button */}
-            <div className="search-bar1">
+            <div className="research-search-bar">
                 <input
                     type="text"
                     placeholder="Search for research articles..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     onKeyPress={handleKeyPress}
+                    className="research-search-input"
                 />
-                <button onClick={() => handleSearch()} disabled={loading}>
+                <button onClick={() => handleSearch()} disabled={loading} className="research-search-button">
                     {loading ? 'Searching...' : 'Search'}
                 </button>
             </div>
 
-            {
-                error && (
-                    <div className="error">
-                        <p>{error}</p>
-                    </div>
-                )
-            }
+            {error && (
+                <div className="research-error">
+                    <p>{error}</p>
+                </div>
+            )}
 
-            <div className="results-container">
-                {loading && <div className="loading">Loading...</div>}
+            <div className="research-results-container">
+                {loading && <div className="research-loading">Loading...</div>}
                 {results.map((article, index) => (
-                    <div key={index} className="article-box">
+                    <div key={index} className="research-article-box">
                         <h3>{article.title}</h3>
                         <p>Author(s): {article.author}</p>
                         <p>{article.abstract}</p>
-                        <a href={article.url} target="_blank" rel="noopener noreferrer">
+                        <a href={article.url} target="_blank" rel="noopener noreferrer" className="research-article-link">
                             Read Article
                         </a>
-                        <button className='addprojectbtn' onClick={() => addToProject(article)}>
+                        <button className='research-add-project-button' onClick={() => addToProject(article)}>
                             Add to Project
                         </button>
                     </div>
                 ))}
             </div>
 
-            {
-                totalResults > RESULTS_PER_PAGE && (
-                    <div className="pagination">
-                        <button
-                            onClick={() => handleSearch(currentPage - 1)}
-                            disabled={currentPage === 1 || loading}
-                        >
-                            Previous
-                        </button>
-                        <span>Page {currentPage} of {Math.ceil(totalResults / RESULTS_PER_PAGE)}</span>
-                        <button
-                            onClick={() => handleSearch(currentPage + 1)}
-                            disabled={currentPage * RESULTS_PER_PAGE >= totalResults || loading}
-                        >
-                            Next
-                        </button>
-                    </div>
-                )
-            }
+            {totalResults > RESULTS_PER_PAGE && (
+                <div className="research-pagination">
+                    <button
+                        onClick={() => handleSearch(currentPage - 1)}
+                        disabled={currentPage === 1 || loading}
+                        className="research-pagination-button"
+                    >
+                        Previous
+                    </button>
+                    <span className="research-pagination-info">Page {currentPage} of {Math.ceil(totalResults / RESULTS_PER_PAGE)}</span>
+                    <button
+                        onClick={() => handleSearch(currentPage + 1)}
+                        disabled={currentPage * RESULTS_PER_PAGE >= totalResults || loading}
+                        className="research-pagination-button"
+                    >
+                        Next
+                    </button>
+                </div>
+            )}
 
-            {
-                showPopup && (
-                    <ProjectPopup
-                        projects={userProjects}
-                        onSelectProject={handleSelectProject}
-                        onClose={() => setShowPopup(false)}
-                    />
-                )
-            }
-        </div >
+            {showPopup && (
+                <ProjectPopup
+                    projects={userProjects}
+                    onSelectProject={handleSelectProject}
+                    onClose={() => setShowPopup(false)}
+                />
+            )}
+        </div>
     );
 };
 

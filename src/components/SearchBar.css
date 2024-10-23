@@ -1,0 +1,45 @@
+/* src/components/SearchBar.css */
+.search-bar4 {
+    display: flex;
+    margin-bottom: 20px;
+    border: 2px solid var(--primary-color);
+    border-radius: 50px;
+    overflow: hidden;
+    background-color: white;
+    max-width: 700px;
+    width: 100%;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.search-bar4:focus-within {
+    box-shadow: 0 4px 15px rgba(0, 168, 107, 0.2);
+}
+
+.search-bar4 input {
+    flex-grow: 1;
+    padding: 15px 25px;
+    font-size: 16px;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    color: var(--text-color);
+}
+
+.search-bar4 input::placeholder {
+    color: #aaa;
+}
+
+.search-bar4 button {
+    padding: 15px 30px;
+    font-size: 16px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.search-bar4 button:hover {
+    background-color: var(--primary-color);
+}

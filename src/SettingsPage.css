@@ -1,17 +1,16 @@
 /* Container for the entire settings page */
 .settings-page-container {
-    background-color: #000000;
-    color: #fff;
+    background-color: #1a1a1a;
+    color: #ffffff;
     min-height: 100vh;
     padding: 40px;
     font-family: 'Segoe UI', 'Arial', sans-serif;
     box-sizing: border-box;
-
 }
 
 /* Styles for headings in the settings page */
 .settings-header {
-    color: #1882fc;
+    color: #00a86b;
     text-align: left;
     font-size: 2.5em;
     font-weight: 300;
@@ -30,17 +29,16 @@
 
 /* Styles for sections in the settings page */
 .settings-section {
-    background-color: #1e1e1e;
-    border: 1px solid #333;
+    background-color: #2a2a2a;
+    border: 1px solid #3a3a3a;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
-
 }
 
 /* Styles for headings in sections */
 .settings-section h2 {
-    color: #1882fc;
+    color: #00a86b;
     font-size: 1.5em;
     margin-bottom: 20px;
     display: flex;
@@ -50,6 +48,7 @@
 /* Styles for SVG icons in headings */
 .settings-section h2 svg {
     margin-right: 10px;
+    color: #00a86b;
 }
 
 /* Styles for form groups */
@@ -61,7 +60,7 @@
 .form-group label {
     display: block;
     margin-bottom: 5px;
-    color: #b3b3b3;
+    color: #cccccc;
 }
 
 /* Styles for form group input fields and select elements */
@@ -69,10 +68,10 @@
 .form-group select {
     width: 100%;
     padding: 10px;
-    background-color: #252525;
-    border: 1px solid #444;
+    background-color: #3a3a3a;
+    border: 1px solid #4a4a4a;
     border-radius: 4px;
-    color: #fff;
+    color: #ffffff;
     font-size: 1em;
 }
 
@@ -93,8 +92,8 @@
 
 /* Styles for file input labels */
 .file-input-label {
-    background-color: #1882fc;
-    color: #fff;
+    background-color: #00a86b;
+    color: #ffffff;
     padding: 10px 15px;
     border-radius: 4px;
     cursor: pointer;
@@ -104,7 +103,7 @@
 }
 
 .file-input-label:hover {
-    background-color: #1565c0;
+    background-color: #008c5a;
 }
 
 /* Styles for SVG icons in file input labels */
@@ -125,8 +124,8 @@
 
 /* Styles for update buttons */
 .update-button {
-    background-color: #1882fc;
-    color: #fff;
+    background-color: #00a86b;
+    color: #ffffff;
     border: none;
     padding: 10px 20px;
     border-radius: 4px;
@@ -137,23 +136,23 @@
 
 /* Styles for update button hover effect */
 .update-button:hover {
-    background-color: #1565c0;
+    background-color: #008c5a;
 }
 
 /* Styles for home buttons */
 .settings-home-button {
     background-color: transparent;
-    border: 2px solid #1882fc;
-    color: #1882fc;
+    border: 2px solid #00a86b;
+    color: #00a86b;
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 .settings-home-button:hover {
-    background-color: #1882fc;
-
+    background-color: #00a86b;
+    color: #ffffff;
 }
 
 .profile-pic-container {
@@ -168,6 +167,7 @@
     border-radius: 50%;
     object-fit: cover;
     margin-right: 20px;
+    border: 2px solid #00a86b;
 }
 
 .file-input-wrapper {
@@ -177,12 +177,12 @@
 
 .file-name {
     margin-left: 10px;
-    color: #b3b3b3;
+    color: #cccccc;
 }
 
 .update-message {
-    background-color: #1882fc;
-    color: #fff;
+    background-color: #00a86b;
+    color: #ffffff;
     padding: 10px;
     border-radius: 4px;
     margin-bottom: 15px;

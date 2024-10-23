@@ -1,0 +1,182 @@
+/* writing-area/src/GenBank.css */
+
+body {
+    font-family: 'Arial', sans-serif;
+    background-color: #000000;
+    color: #94a1b2;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+}
+
+.genbank-container {
+    max-width: 100%;
+    min-height: 100vh;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #000000;
+    color: #94a1b2;
+    font-family: 'Arial', sans-serif;
+    overflow-y: auto;
+}
+
+.genbank-home-button {
+    padding: 12px 20px;
+    max-width: 4vw;
+    border-radius: 4px;
+    border: none;
+    background-color: #04ff79;
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+}
+
+.genbank-header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.genbank-header h1 {
+    text-align: center;
+    color: #46ad69;
+    margin-bottom: 20px;
+    font-size: 3.5rem;
+    text-wrap: wrap;
+}
+
+.search-section,
+.accession-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.genbank-input {
+    flex-grow: 1;
+    padding: 10px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background-color: #2e3039;
+    color: #fffffe;
+    transition: border-bottom-color 0.3s ease;
+}
+
+.genbank-input:focus {
+    outline: none;
+    border-bottom-color: #46ad69;
+}
+
+/* Optional: Add a label for the input field */
+.input-container {
+    position: relative;
+    flex-grow: 1;
+}
+
+.input-label {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a1b2;
+    transition: all 0.3s ease;
+    pointer-events: none;
+}
+
+.genbank-input:focus+.input-label,
+.genbank-input:not(:placeholder-shown)+.input-label {
+    top: -12px;
+    left: 5px;
+    font-size: 0.8em;
+    color: #46ad69;
+}
+
+.genbank-button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #46ad69;
+    color: #fffffe;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.genbank-button:hover {
+    background-color: #13602d;
+}
+
+.genbank-button:disabled {
+    background-color: #94a1b2;
+    cursor: not-allowed;
+}
+
+.error-message {
+    color: #ff6b6b;
+    margin-bottom: 20px;
+}
+
+.results-section {
+    margin-top: 20px;
+}
+
+.results-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+.result-item {
+    background-color: #2e3039;
+    margin-bottom: 10px;
+    padding: 15px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.result-text h3 {
+    color: #fffffe;
+    margin: 0 0 5px 0;
+}
+
+.result-text p {
+    margin: 0;
+}
+
+.result-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.pagination1 {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.pagination-button1 {
+    padding: 5px 10px;
+    margin: 0 5px;
+    border: none;
+    border-radius: 4px;
+    background-color: #2e3039;
+    color: #fffffe;
+    cursor: pointer;
+}
+
+.pagination-button1.active {
+    background-color: #46ad69;
+}
+
+@media (max-width: 600px) {
+
+    .search-section,
+    .accession-section {
+        flex-direction: column;
+    }
+
+    .genbank-button {
+        width: 100%;
+    }
+}

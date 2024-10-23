@@ -19,12 +19,7 @@ body {
     transition: all 0.3s ease;
 }
 
-.research-container h1 {
-    text-align: center;
-    color: #0066cc;
-    /* Blue-green color for titles */
-    margin-bottom: 20px;
-}
+
 
 /* Search bar styles */
 .search-container {

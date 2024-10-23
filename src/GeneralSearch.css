@@ -1,7 +1,7 @@
 /* GeneralSearch.css */
 body {
-    background-color: #000000;
-    color: #e0e0e0;
+    background-color: #242629;
+    color: #94a1b2;
     font-family: 'Arial', sans-serif;
 }
 
@@ -11,14 +11,14 @@ body {
     margin: 0 auto;
     padding: 20px;
     background-color: #000000;
-    box-shadow: 0 4px 15px rgba(0, 102, 204, 0.2);
+    box-shadow: 0 4px 15px rgba(4, 255, 121, 0.2);
     border-radius: 8px;
     overflow-y: auto;
 }
 
 .GeneralSearch-search-container h1 {
     text-align: center;
-    color: #0066cc;
+    color: #46ad69;
     margin-bottom: 20px;
     font-size: 3.5rem;
     text-wrap: wrap;
@@ -34,11 +34,20 @@ body {
     flex: 1;
     max-width: 500px;
     padding: 12px;
-    border: 2px solid #0066cc;
+    border: 2px solid #46ad69;
     border-radius: 4px 0 0 4px;
-    background-color: #222;
-    color: #e0e0e0;
+    background-color: #2e3039;
+    color: #fffffe;
     font-size: 1rem;
+    outline: none;
+    /* Add this line to remove the default focus outline */
+}
+
+.GeneralSearch-search-input input:focus {
+    border: 2px solid #035b20;
+    /* Keep the same border as unfocused state */
+    /* You can add a subtle box-shadow for a focus effect if desired: */
+    box-shadow: 0 0 0 1px rgba(70, 173, 105, 0.5);
 }
 
 .GeneralSearch-search-input button,
@@ -46,8 +55,8 @@ body {
 .GeneralSearch-pagination-button {
     padding: 12px 20px;
     border: none;
-    background-color: #0066cc;
-    color: #fff;
+    background-color: #46ad69;
+    color: #000000;
     cursor: pointer;
     transition: background-color 0.3s ease;
     font-size: 1rem;
@@ -66,7 +75,7 @@ body {
 .GeneralSearch-search-input button:hover,
 .GeneralSearch-home-button:hover,
 .GeneralSearch-pagination-button:hover:not(:disabled) {
-    background-color: #004a99;
+    background-color: #1a7e3b;
 }
 
 .GeneralSearch-results-container {
@@ -77,11 +86,11 @@ body {
 }
 
 .GeneralSearch-article-box {
-    background-color: #1e1e1e;
-    border: 1px solid #0066cc;
+    background-color: #2e3039;
+    border: 1px solid #46ad69;
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 10px rgba(0, 102, 204, 0.1);
+    box-shadow: 0 2px 10px rgba(4, 255, 121, 0.1);
     transition: box-shadow 0.3s ease;
     overflow-wrap: break-word;
     height: 40vh;
@@ -90,7 +99,7 @@ body {
 }
 
 .GeneralSearch-article-box:hover {
-    box-shadow: 0 4px 20px rgba(0, 102, 204, 0.2);
+    box-shadow: 0 4px 20px rgba(4, 255, 121, 0.2);
 }
 
 .GeneralSearch-article-content {
@@ -99,14 +108,14 @@ body {
 }
 
 .GeneralSearch-article-box h3 {
-    color: #0066cc;
+    color: #46ad69;
     margin: 0 0 10px;
     font-size: 1.2rem;
 }
 
 .GeneralSearch-article-box p {
     margin: 10px 0;
-    color: #c0c0c0;
+    color: #94a1b2;
     font-size: 0.9rem;
     text-wrap: wrap;
 }
@@ -121,8 +130,8 @@ body {
 .GeneralSearch-article-actions a,
 .GeneralSearch-addprojectbtn1 {
     padding: 8px 12px;
-    background-color: #0066cc;
-    color: white;
+    background-color: #46ad69;
+    color: #242629;
     text-decoration: none;
     border-radius: 4px;
     transition: background-color 0.3s ease;
@@ -131,7 +140,7 @@ body {
 
 .GeneralSearch-article-actions a:hover,
 .GeneralSearch-addprojectbtn1:hover {
-    background-color: #004a99;
+    background-color: #1a7e3b;
 }
 
 .GeneralSearch-pagination {
@@ -144,7 +153,7 @@ body {
 .GeneralSearch-pagination-info {
     margin: 0 15px;
     font-size: 1rem;
-    color: #e0e0e0;
+    color: #94a1b2;
 }
 
 .GeneralSearch-pagination-button:disabled {
@@ -155,7 +164,7 @@ body {
 .GeneralSearch-loading,
 .GeneralSearch-no-results {
     text-align: center;
-    color: #e0e0e0;
+    color: #94a1b2;
     font-size: 1.1rem;
     margin: 20px 0;
 }

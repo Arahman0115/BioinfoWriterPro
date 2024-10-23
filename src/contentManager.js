@@ -32,5 +32,3 @@ export const saveContent = debounce(async (user, project, updatedSections, secti
 }, 4000);
 
 // Function to load a project from Firestore
-
-

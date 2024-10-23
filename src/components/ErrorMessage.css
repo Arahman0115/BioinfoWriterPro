@@ -1,0 +1,14 @@
+/* src/components/ErrorMessage.css */
+.error-message {
+    background-color: #ffebee;
+    color: #c62828;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.error-message p {
+    margin: 0;
+    font-weight: bold;
+}

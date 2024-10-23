@@ -74,14 +74,14 @@ const UserDropdown = () => {
         <div className="user-dropdown" ref={dropdownRef}>
             <div className="user-profile" onClick={toggleDropdown}>
                 {profilePicUrl ? (
-                    <img src={profilePicUrl} alt="Profile" className="profile-pic1" />
+                    <img src={profilePicUrl} alt="Profile" className="profile-pic" />
                 ) : (
-                    <div className="default-pic">👤</div> // Default icon if no picture is available
+                    <div className="default-pic">👤</div>
                 )}
             </div>
             {isOpen && (
                 <div className="dropdown-menu">
-                    <p>{currentUser?.displayName || currentUser?.email}</p> {/* Show display name or email */}
+                    <p className="user-info">{currentUser?.displayName || currentUser?.email}</p>
                     <button onClick={handleLogout} className="dropdown-button">
                         🚪 Sign out
                     </button>

@@ -1,0 +1,29 @@
+/* src/components/ResultsList.css */
+.results-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.result-item {
+    background-color: #f9f9f9;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 15px;
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+}
+
+.result-item:hover {
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.result-item h3 {
+    margin-top: 0;
+    color: #333;
+}
+
+.result-item p {
+    margin: 5px 0;
+    color: #666;
+}

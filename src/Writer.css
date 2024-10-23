@@ -1,17 +1,18 @@
 :root {
-    --primary-color: #1882fc;
-    --secondary-color: #BB86FC;
-    --background-color: #29e70c;
-    --secondary-background: #ff0000;
-    --text-color: #ffffff;
-    --accent-color: #9A67EA;
+    --primary-color: #64ffda;
+    --secondary-color: #7f5af0;
+    --background-color: #16161a;
+    --surface-color: #242629;
+    --text-color: #94a1b2;
+    --heading-color: #fffffe;
+    --accent-color: #2cb67d;
     --border-radius: 10px;
     --transition-speed: 0.3s;
     --toolbar-height: 60px;
 }
 
 .body {
-    background-color: #000000;
+    background-color: var(--background-color);
 }
 
 .writer-container {
@@ -21,7 +22,7 @@
     width: 100%;
     margin: 0 auto;
     padding: 1rem;
-    background-color: #000000;
+    background-color: var(--background-color);
     overflow: hidden;
 
 }
@@ -36,16 +37,16 @@
 }
 
 .writing-area-container::-webkit-scrollbar-track {
-    background: #000000;
+    background: var(--surface-color);
     /* Color of the tracking area */
 }
 
 .writing-area-container::-webkit-scrollbar-thumb {
-    background-color: #1882fc;
+    background-color: var(--primary-color);
     /* Color of the scroll thumb */
     border-radius: 20px;
     /* Roundness of the scroll thumb */
-    border: 2px solid #000000;
+    border: 2px solid var(--surface-color);
     /* Creates padding around scroll thumb */
 }
 
@@ -64,12 +65,15 @@
     gap: 1rem;
     height: calc(100vh - var(--toolbar-height) - 5rem);
     overflow: hidden;
+    background-color: var(--background-color);
 
 }
 
 .writer {
     flex: 1;
     max-height: calc(100vh - var(--toolbar-height) - 1rem);
+
+
 
     margin-top: 4rem;
 }
@@ -80,11 +84,11 @@
     padding: 15px;
     margin-bottom: 20px;
     margin-top: 10px;
-    border: 1px solid #1882fc;
+    border: 1px solid var(--primary-color);
     border-radius: 10px;
     width: 90%;
-    background-color: #000000;
-    color: #ffffff;
+    background-color: var(--background-color);
+    color: var(--text-color);
     align-self: center;
     text-align: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -94,14 +98,14 @@
 }
 
 .title-section {
-    background-color: #000000;
+    background-color: var(--background-color);
     border-radius: 5px;
     width: 100%;
 }
 
 .title-input:focus {
     outline: none;
-    border-color: #1882fc;
+    border-color: var(--primary-color);
     box-shadow: 0 0 10px #01036c;
     font-size: 24px;
     font-weight: bold;
@@ -113,7 +117,7 @@
     font-size: 24px;
     font-weight: bold;
     margin-bottom: 20px;
-    color: #ffffff;
+    color: var(--text-color);
     display: flex;
     justify-content: center;
     /* Center the title */
@@ -135,7 +139,7 @@
 
 .writing-area:focus {
     outline: none;
-    border-color: #2383f0;
+    border-color: var(--primary-color);
 
 
 
@@ -151,19 +155,19 @@
     overflow-y: none;
 
     margin-left: 0;
-    border: 2px solid #1882fc;
+    border: 2px solid var(--primary-color);
     padding: 10px;
     border-radius: 10px;
-    background-color: rgba(0, 0, 0, 0.8);
+    background-color: var(--surface-color);
     backdrop-filter: blur(5px);
-    box-shadow: 0 4px 6px rgba(24, 130, 252, 0.1);
+    box-shadow: 0 4px 6px rgba(100, 255, 218, 0.1);
     position: relative;
 }
 
 .sugtitle {
     font-size: 24px;
     font-weight: bold;
-    color: #ffffff;
+    color: var(--heading-color);
     font-family: 'Arial', sans-serif;
     text-align: center;
     margin-bottom: 20px;
@@ -177,7 +181,7 @@
     display: block;
     width: 50px;
     height: 3px;
-    background-color: #1882fc;
+    background-color: var(--primary-color);
     position: absolute;
     bottom: -10px;
     left: 50%;
@@ -190,7 +194,7 @@
 
 
 .suggestion {
-    color: #ffffff;
+    color: var(--text-color);
     font-family: 'Arial', sans-serif;
     font-size: 16px;
     line-height: 1.6;
@@ -207,8 +211,8 @@
     bottom: 0;
     width: 100vw;
     height: 40px;
-    background-color: #1E1E1E;
-    color: white;
+    background-color: var(--surface-color);
+    color: var(--text-color);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -231,21 +235,21 @@
     padding: 10px 20px;
     font-size: 16px;
     cursor: pointer;
-    background-color: #BB86FC;
-    color: #121212;
+    background-color: var(--secondary-color);
+    color: var(--background-color);
     border: none;
     border-radius: 5px;
     transition: background-color 0.3s;
 }
 
 .controls button:hover {
-    background-color: #9A67EA;
+    background-color: var(--accent-color);
 }
 
 .character-count {
     margin-top: 10px;
     font-size: 14px;
-    color: #ffffff;
+    color: var(--text-color);
     text-align: center;
 }
 
@@ -259,15 +263,16 @@
     position: sticky;
     top: calc(var(--toolbar-height) + 1rem);
     overflow-y: auto;
-    border: 2px solid #1882fc;
+    border: 1px solid var(--primary-color);
     border-radius: 10px;
     padding: 10px;
+    background-color: var(--surface-color);
 }
 
 .outline-box:hover,
 .suggestion-overlay:hover,
 .writing-area-container:hover {
-    box-shadow: 0 8px 20px rgba(32, 73, 251, 0.8);
+    box-shadow: 0 8px 20px rgba(0, 255, 225, 0.8);
 }
 
 .styled-block {
@@ -278,7 +283,7 @@
     /* Adjust as needed */
     pointer-events: none;
     z-index: 1;
-    background-color: #1882fc;
+    background-color: var(--primary-color);
     padding: 5px;
     border-radius: 5px;
 }
@@ -288,7 +293,7 @@
 .outline-box h2 {
     font-size: 22px;
     margin-bottom: 15px;
-    color: #ffffff;
+    color: var(--text-color);
     text-align: center;
     font-family: Arial, Helvetica, sans-serif'Courier New', Courier, monospace;
 }
@@ -303,7 +308,8 @@
     padding: 10px 15px;
     margin-bottom: 10px;
     font-size: 16px;
-    background-color: #080808;
+    background-color: var(--background-color);
+    color: var(--text-color);
     font-family: Arial, Helvetica, sans-serif'Courier New', Courier, monospace;
     border-radius: 5px;
     cursor: grab;
@@ -316,21 +322,23 @@
 .outline-box ul li::before {
     content: '☰';
     margin-right: 10px;
-    color: #1882fc;
+    color: var(--primary-color);
 }
 
 .outline-box ul li:hover {
-    background-color: #3C3C3C;
+    background-color: var(--accent-color);
+    color: var(--background-color);
 }
 
 .outline-box ul li:active {
     cursor: grabbing;
-    background-color: #4A4A4A;
+    background-color: var(--accent-color);
+    color: var(--background-color);
 }
 
 .outline-box li[data-rbd-dragging="true"] {
-    background-color: #3C3C3C;
-    box-shadow: 0 2px 10px rgba(187, 134, 252, 0.3);
+    background-color: var(--accent-color);
+    box-shadow: 0 2px 10px rgba(100, 255, 218, 0.3);
 }
 
 .new-section {
@@ -356,8 +364,8 @@
 }
 
 .feedback-message {
-    background-color: rgba(0, 0, 0, 0.7);
-    color: #3e3c3c;
+    background-color: var(--surface-color);
+    color: var(--text-color);
     padding: 5px 10px;
     border-radius: 5px;
     font-size: 14px;
@@ -369,24 +377,24 @@
 .new-section input {
     flex: 1;
     padding: 8px;
-    border: 1px solid #1882fc;
+    border: 1px solid var(--primary-color);
     border-radius: 5px;
-    background-color: #080808;
-    color: white;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 
 .new-section button {
     padding: 8px 12px;
     border: none;
-    background-color: #1882fc;
-    color: #ffffff;
+    background-color: var(--primary-color);
+    color: var(--background-color);
     border-radius: 5px;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .new-section button:hover {
-    background-color: #10427b;
+    background-color: var(--accent-color);
 }
 
 .outline-box::-webkit-scrollbar {
@@ -394,21 +402,21 @@
 }
 
 .outline-box::-webkit-scrollbar-track {
-    background: #1E1E1E;
+    background: var(--surface-color);
 }
 
 .outline-box::-webkit-scrollbar-thumb {
-    background-color: #000000;
+    background-color: var(--primary-color);
     border-radius: 10px;
 }
 
 .outline-box::-webkit-scrollbar-thumb:hover {
-    background-color: #9A67EA;
+    background-color: var(--accent-color);
 }
 
 .outline-box {
     scrollbar-width: thin;
-    scrollbar-color: #1882fc #1E1E1E;
+    scrollbar-color: var(--primary-color) var(--surface-color);
 }
 
 .spinnerbox {
@@ -427,8 +435,8 @@
 
 .title-submit {
     padding: 8px 12px;
-    background-color: #000000;
-    color: #121212;
+    background-color: var(--primary-color);
+    color: var(--background-color);
     border: none;
     cursor: pointer;
     border-radius: 5px;
@@ -437,7 +445,7 @@
 }
 
 .title-submit:hover {
-    background-color: #ffffff;
+    background-color: var(--accent-color);
 }
 
 .side-panel {
@@ -449,8 +457,8 @@
     width: 450px;
     /* Set a fixed width */
     height: calc(100vh - var(--toolbar-height) - 2rem);
-    background-color: #000000;
-    border: 2px solid #1882fc;
+    background-color: var(--surface-color);
+    border: 1px solid var(--primary-color);
 
     /* Change transition property to transform */
     overflow-y: auto;
@@ -474,7 +482,7 @@
 .side-panel h2 {
     margin: 0 0 15px;
     font-size: 20px;
-    color: #ffffff;
+    color: var(--text-color);
     font-weight: bold;
 }
 
@@ -492,7 +500,7 @@
 
 /* Link styles */
 .side-panel li a {
-    color: #1882fc;
+    color: var(--primary-color);
     text-decoration: none;
     display: block;
     overflow-wrap: break-word;
@@ -505,8 +513,8 @@
 
 /* Button styling */
 .sidepanelbutton {
-    background-color: #1882fc;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--background-color);
     border: none;
     border-radius: 5px;
     padding: 10px 15px;
@@ -522,7 +530,7 @@
 
 /* Button hover effect */
 .sidepanelbutton:hover {
-    background-color: #2639b6;
+    background-color: var(--accent-color);
 }
 
 /* Button position when side panel is visible */
@@ -538,10 +546,10 @@
     flex-direction: column;
     gap: 10px;
     padding: 10px;
-    border: 2px solid #1882fc;
+    border: 2px solid var(--primary-color);
     border-radius: 5px;
-    background-color: #0d0d0d;
-    color: #ffffff;
+    background-color: var(--background-color);
+    color: var(--text-color);
     transition: all 0.3s ease;
 }
 
@@ -552,7 +560,7 @@
     flex-direction: column;
     justify-content: flex-start;
     /* Changed from center to flex-start */
-    border: 2px solid #1882fc;
+    border: 2px solid var(--primary-color);
     border-radius: 10px;
     padding: 20px;
     align-self: center;
@@ -569,7 +577,7 @@
     /* Adjust font size as needed */
     line-height: 1.6;
     /* Adjust line height for better readability */
-    color: #ffffff;
+    color: var(--text-color);
     /* Ensure text color contrasts with background */
 }
 
@@ -618,8 +626,8 @@
     justify-content: center;
     align-items: center;
     height: 100vh;
-    background-color: #000000;
-    color: #ffffff;
+    background-color: var(--background-color);
+    color: var(--text-color);
     text-align: center;
     padding: 20px;
 }
@@ -739,8 +747,8 @@
     align-items: center;
     align-self: center;
     justify-content: center;
-    background-color: #1882fc;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--background-color);
     border: none;
     padding: 5px 10px;
     cursor: pointer;
@@ -750,7 +758,7 @@
 }
 
 .history-button:hover {
-    background-color: #10427b;
+    background-color: var(--accent-color);
 }
 
 .suggestion-history {
@@ -763,13 +771,13 @@
 }
 
 .history-item {
-    background-color: rgba(2, 45, 62, 0.1);
-    border: 1px solid rgba(24, 130, 252, 0.3);
+    background-color: var(--surface-color);
+    border: 1px solid var(--primary-color);
     border-radius: 5px;
     padding: 10px;
     margin-bottom: 10px;
     font-size: 0.9rem;
-    color: #ffffff;
+    color: var(--text-color);
 }
 
 .history-item:last-child {
@@ -777,8 +785,8 @@
 }
 
 .insert-suggestion-button {
-    background-color: #1882fc;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--background-color);
     border: none;
     padding: 3px 8px;
     margin-left: 10px;
@@ -789,7 +797,7 @@
 }
 
 .insert-suggestion-button:hover {
-    background-color: #1565c0;
+    background-color: var(--accent-color);
 }
 
 .history-item {
@@ -797,4 +805,33 @@
     justify-content: space-between;
     align-items: center;
     /* ... existing styles ... */
+}
+
+.writing-area-container {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.writing-area-container.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.project-title.untitled {
+    color: var(--accent-color);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }

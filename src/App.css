@@ -19,9 +19,7 @@ body>div {
 }
 
 /* For non-React apps */
-  {
-  border-radius: 0 !important;
-}
+
 
 /* Main app container */
 .app {
@@ -35,7 +33,7 @@ body>div {
   /* Center content vertically */
   align-items: center;
   /* Center content horizontally */
-  padding: 20px;
+
   /* Add padding inside the container */
 
   /* Rounded corners */
@@ -59,10 +57,7 @@ h1 {
   /* Space below the heading */
 }
 
-.vsc-initialized {
-  background-color: #080808;
 
-}
 
 /* Responsive adjustments */
 @media (max-width: 600px) {

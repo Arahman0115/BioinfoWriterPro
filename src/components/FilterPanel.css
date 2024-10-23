@@ -1,0 +1,30 @@
+/* src/components/FilterPanel.css */
+.filter-panel {
+    background-color: #f0f0f0;
+    padding: 15px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    min-width: 300px;
+    max-width: 1200px;
+}
+
+.filter-panel h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.filter-panel label {
+    display: block;
+    margin-bottom: 10px;
+    color: #000000;
+}
+
+.filter-panel select,
+.filter-panel input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}

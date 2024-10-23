@@ -9,6 +9,10 @@ import Spinner from './Spinner';
 import UserDropdown from './UserDropdown';
 import writerlogo from './writerlogo.webp';
 import wbg from './wbg.png';
+import deoxy from './deoxy.png';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+
+
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -55,13 +59,19 @@ const HomePage = () => {
     console.log("New Project button clicked");
 
     // Navigate to writer without creating a new document in Firestore
-    navigate('/writer', { state: { project: { title: '', sections: { Introduction: { content: '' } } } } });
+    navigate('/writer', { state: { project: { title: '', sections: { Template: { content: '' } } } } });
   };
   const handleResearchCrossClick = () => {
     navigate('/research-cross');
   };
   const handleGeneralSearchClick = () => {
     navigate('/general-search');
+  };
+  const handleGenBankClick = () => {
+    navigate('/genbank-search');
+  };
+  const handleMAFTClick = () => {
+    navigate('/mafft');
   };
 
   const handleDeleteClick = (index) => {
@@ -115,6 +125,14 @@ const HomePage = () => {
       name: "General Search",
       onClick: handleGeneralSearchClick,
     },
+    {
+      name: "Search GenBank",
+      onClick: handleGenBankClick,
+    },
+    {
+      name: "MAFT",
+      onClick: handleMAFTClick,
+    },
 
     // Add more templates as needed
   ];
@@ -123,8 +141,8 @@ const HomePage = () => {
     <div className="homepage-container">
       <header className="navbar">
         <div className='titlelogo'>
-          <img src={wbg} alt="Home" className="home-icon1" />
-          <h1 className='writerprotitle'>WriterPro</h1>
+          <img src={deoxy} alt="Home" className="home-icon1" />
+          <h1 className='writerprotitle'>BioScribe</h1>
         </div>
 
         <div className="navbar-middle">
@@ -138,16 +156,10 @@ const HomePage = () => {
         </div>
 
         <div className="navbar-right">
-          <div className='usernamebox'>
-            <span>Welcome, </span>
-            <span className="user-name">{currentUser?.displayName || currentUser?.displayName || currentUser?.email}</span>
-            <div className="profile-pic">
-              {/* Profile picture or initials */}
-            </div>
+          <div className="usernamebox">
+            <span className="user-name"><span>Welcome, </span>{currentUser?.displayName || currentUser?.email}</span>
           </div>
-          <div className="user-dropdown-container">
-            {currentUser && <UserDropdown />}
-          </div>
+          <UserDropdown />
         </div>
       </header>
 
@@ -183,8 +195,8 @@ const HomePage = () => {
               filteredProjects.map((project, index) => (
                 <div key={project.id} className="project-card" onClick={() => handleProjectClick(project)}>
                   <p>
-                    {project.sections?.Introduction?.content
-                      ? project.sections.Introduction.content.slice(0, 500)
+                    {project.sections?.Template?.content
+                      ? project.sections.Template.content.slice(0, 500)
                       : "No content available"}
                     ...
                   </p>
@@ -193,14 +205,14 @@ const HomePage = () => {
                       <h2>{project.title || 'Untitled Project'}</h2>
                       <p>Last edited: {new Date(project.lastEdited).toLocaleDateString()}</p>
                     </div>
-                    <div className="ellipsis-button" onClick={(e) => handleEllipsisClick(e, index)}>
-                      ...
-                      {activeDropdown === index && (
-                        <div className="dropdown-menu">
-                          <button onClick={(e) => handleDeleteOption(e, index)}>Delete</button>
-                          {/* Add more options here as needed */}
-                        </div>
-                      )}
+                    <div className="dropdown-container">
+                      <button className="ellipsis-button" onClick={(e) => handleEllipsisClick(e, index)}>
+                        <MoreVertIcon />
+                      </button>
+                      <div className="dropdown-menu">
+                        <button onClick={(e) => handleDeleteOption(e, index)}>Delete</button>
+                        {/* Add more options here as needed */}
+                      </div>
                     </div>
                   </div>
                 </div>

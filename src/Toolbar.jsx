@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';  // Import PropTypes for type-checking
 import './Toolbar.css';
 import homeIcon from './home-icon.jpg'; // Import your home icon image
 import { useNavigate } from 'react-router-dom';
-import wbg from './wbg.png';
+import deoxy from './deoxy.png';
 
 const Toolbar = ({ onNewClick, onSaveClick, onDownloadClick, onExportWordClick, onShowArticlesClick, onCitationMangerClick }) => {
   const [activeDropdown, setActiveDropdown] = useState(null);
@@ -18,8 +18,8 @@ const Toolbar = ({ onNewClick, onSaveClick, onDownloadClick, onExportWordClick, 
     <div className="toolbar-container">
       <div className="toolbar">
         {/* Home Icon */}
-        <div className="menu-item" onClick={() => navigate('/')}>
-          <img src={wbg} alt="Home" className="home-icon" />
+        <div className="nil" onClick={() => navigate('/')}>
+          <img src={deoxy} alt="Home" className="home-icon" />
         </div>
 
         {/* File Menu */}

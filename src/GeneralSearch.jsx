@@ -123,11 +123,11 @@ const GeneralSearch = () => {
 
     return (
         <div className="GeneralSearch-search-container">
-            <button onClick={handleHomePress} className="res-home-button">
+            <button onClick={handleHomePress} className="GeneralSearch-home-button">
                 <ChevronLeft size={20} />
 
             </button>
-            <h1>General Search</h1>
+            <h1 className='GeneralSearch-header'>General Search</h1>
             <div className="GeneralSearch-search-input">
                 <input
                     type="text"

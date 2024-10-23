@@ -1,8 +1,8 @@
 /* General styles */
 body {
-    background-color: #000000;
+    background-color: #242629;
     /* Dark background */
-    color: #e0e0e0;
+    color: #94a1b2;
     /* Light text color */
     font-family: 'Arial', sans-serif;
 }
@@ -11,24 +11,22 @@ body {
 .research-container {
     width: 98vw;
     height: 100vh;
-
     padding: 20px;
     border-radius: 8px;
-    background-color: #000000;
-    /* Slightly lighter for contrast */
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    background-color: #242629;
+    box-shadow: 0 4px 15px rgba(4, 255, 121, 0.2);
     transition: all 0.3s ease;
+    overflow-y: auto;
 }
 
 .research-container h1 {
     text-align: center;
-    color: #0066cc;
-    /* Blue-green color for titles */
+    color: #46ad69;
     margin-bottom: 20px;
 }
 
 /* Unified Search Bar and Button */
-.search-bar1 {
+.research-search-bar {
     display: flex;
     justify-content: center;
     margin-bottom: 30px;
@@ -38,47 +36,47 @@ body {
     position: relative;
 }
 
-.search-bar1 input {
+.research-search-input {
     flex: 1;
     padding: 12px 15px;
-    border: 2px solid #0066cc;
+    border: 2px solid #46ad69;
     border-right: none;
     border-radius: 4px 0 0 4px;
-    background-color: #222;
-    color: #e0e0e0;
+    background-color: #2e3039;
+    color: #fffffe;
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
 
-.search-bar1 input:focus {
-    box-shadow: 0 0 0 2px rgba(0, 102, 204, 0.3);
+.research-search-input:focus {
+    box-shadow: 0 0 0 2px rgba(4, 255, 121, 0.3);
 }
 
-.search-bar1 button {
+.research-search-button {
     padding: 12px 20px;
-    border: 2px solid #0066cc;
+    border: 2px solid #04ff79;
     border-left: none;
     border-radius: 0 4px 4px 0;
-    background-color: #0066cc;
-    color: #fff;
+    background-color: #04ff79;
+    color: #242629;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 1rem;
     outline: none;
 }
 
-.search-bar1 button:hover {
-    background-color: #004a99;
-    border-color: #004a99;
+.research-search-button:hover {
+    background-color: #136e31;
+    border-color: #46ad69;
 }
 
-.search-bar1 button:active {
-    background-color: #003366;
-    border-color: #003366;
+.research-search-button:active {
+    background-color: #00cc61;
+    border-color: #00cc61;
 }
 
-.search-bar1 button:disabled {
+.research-search-button:disabled {
     background-color: #555;
     border-color: #555;
     cursor: not-allowed;
@@ -87,14 +85,14 @@ body {
 
 /* ... (rest of your styles) */
 
-.res-home-button {
+.research-home-button {
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
     border: none;
-    background-color: #0066cc;
-    color: #fff;
+    background-color: #46ad69;
+    color: #242629;
     cursor: pointer;
     transition: background-color 0.3s ease;
     font-size: 1rem;
@@ -102,15 +100,15 @@ body {
     margin: 10px 5px;
 }
 
-.res-home-button:hover {
-    background-color: #004a99;
+.research-home-button:hover {
+    background-color: #46ad69;
 }
 
 /* Error message */
-.error {
+.research-error {
     background-color: #ff4d4d;
     /* Red for error messages */
-    color: white;
+    color: #242629;
     padding: 15px;
     border-radius: 4px;
     text-align: center;
@@ -118,117 +116,113 @@ body {
 }
 
 /* Results container */
-.results-container {
+.research-results-container {
     display: flex;
     flex-direction: column;
     gap: 15px;
     /* Space between articles */
 }
 
-.article-box {
-    background-color: #1e1e1e;
+.research-header {
+    text-align: center;
+    color: #46ad69;
+    margin-bottom: 20px;
+    font-size: 3.5rem;
+    text-wrap: wrap;
+}
+
+.research-article-box {
+    background-color: #2e3039;
     /* Dark background for articles */
-    border: 1px solid #0066cc;
+    border: 1px solid #46ad69;
     /* Border for articles */
     border-radius: 8px;
     padding: 15px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 2px 10px rgba(4, 255, 121, 0.1);
     transition: box-shadow 0.3s ease;
 }
 
-.article-box:hover {
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
+.research-article-box:hover {
+    box-shadow: 0 4px 20px rgba(4, 255, 121, 0.2);
     /* Shadow effect on hover */
 }
 
-.article-box h3 {
-    color: #0066cc;
+.research-article-box h3 {
+    color: #46ad69;
     /* Title color */
     margin: 0 0 10px;
 }
 
-.article-box p {
+.research-article-box p {
     margin: 10px 0;
-    color: #c0c0c0;
+    color: #94a1b2;
     /* Slightly lighter for text */
 }
 
 /* Link styling */
-.article-box a {
+.research-article-link {
     display: inline-block;
     margin-top: 10px;
     padding: 8px 12px;
-    background-color: #0066cc;
+    background-color: #46ad69;
     /* Link button background */
-    color: white;
+    color: #242629;
     text-decoration: none;
     border-radius: 4px;
     transition: background-color 0.3s ease;
 }
 
-.article-box a:hover {
-    background-color: #004a99;
+.research-article-link:hover {
+    background-color: #136e31;
     /* Darker blue on hover */
 }
 
 /* Pagination styles */
-.pagination {
+.research-pagination {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-top: 20px;
 }
 
-.pagination button {
+.research-pagination-button {
     padding: 10px 12px;
     border: none;
     border-radius: 4px;
-    background-color: #0066cc;
+    background-color: #46ad69;
     /* Button background */
-    color: #fff;
+    color: #242629;
     /* Button text color */
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
-.pagination button:hover {
-    background-color: #0066cc;
+.research-pagination-button:hover {
+    background-color: #136e31;
     /* Dark blue on hover */
 }
 
-.pagination span {
-    color: #e0e0e0;
+.research-pagination-info {
+    color: #94a1b2;
     /* Light text for pagination info */
 }
 
-.res-home-button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border: none;
-    background-color: #0066cc;
-    color: #fff;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-    font-size: 1rem;
-    border-radius: 4px;
-    margin: 10px 5px;
-}
-
-.res-home-button:hover {
-    background-color: #004a99;
-}
-
-.addprojectbtn {
+.research-add-project-button {
     display: inline-block;
     margin-top: 10px;
     padding: 13px 13px;
-    background-color: #0066cc;
+    background-color: #46ad69;
     /* Link button background */
-    color: white;
+    color: #242629;
     text-decoration: none;
     font-size: 15px;
     border-radius: 4px;
     transition: background-color 0.3s ease;
+    cursor: pointer;
+    border: none;
+    margin-left: 10px;
+}
+
+.research-add-project-button:hover {
+    background-color: #136e31;
 }

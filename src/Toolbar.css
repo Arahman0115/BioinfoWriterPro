@@ -1,3 +1,13 @@
+:root {
+    --primary-color: #64ffda;
+    --secondary-color: #7f5af0;
+    --background-color: #16161a;
+    --surface-color: #242629;
+    --text-color: #94a1b2;
+    --heading-color: #fffffe;
+    --accent-color: #2cb67d;
+}
+
 /* Toolbar container */
 .toolbar-container {
     position: fixed;
@@ -6,13 +16,14 @@
     width: 100vw;
 
 
-    background-color: #0091ff;
+
+    background-color: var(--surface-color);
     /* Light background like Google Docs */
     display: flex;
     justify-content: center;
     z-index: 1000;
     height: 6vh;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
     /* Light shadow for elevation */
 }
 
@@ -20,21 +31,22 @@
 .toolbar {
     display: flex;
     width: 100%;
-    background-color: #030303;
+    background-color: var(--surface-color);
     padding: 10px;
-
+    border: none;
+    border-radius: 0;
     align-items: center;
 
 }
 
 .toolbar-container ::after {
-    border: 2px solid #0524f0;
+    border: 2px solid var(--primary-color);
 }
 
 /* Menu item style */
 .menu-item {
     position: relative;
-    color: #ffffff;
+    color: var(--text-color);
     /* Light gray text */
     font-size: 14px;
     padding: 8px 12px;
@@ -47,9 +59,9 @@
 }
 
 .menu-item:hover {
-    background-color: transparent;
+    background-color: var(--accent-color);
     /* Light hover background */
-    color: #202124;
+    color: var(--background-color);
     /* Dark text on hover */
 }
 
@@ -58,11 +70,11 @@
     position: absolute;
     top: 35px;
     left: 0;
-    background-color: #000000;
+    background-color: var(--surface-color);
     /* White background for dropdown */
-    border: 1px solid #1882fc;
+    border: 1px solid var(--primary-color);
     border-radius: 3px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.4);
     z-index: 1;
     display: flex;
     flex-direction: column;
@@ -71,10 +83,12 @@
 
 }
 
+
+
 /* Dropdown buttons */
 .dropdown button {
     background: none;
-    color: #ffffff;
+    color: var(--text-color);
     padding: 10px 15px;
     text-align: left;
     border: none;
@@ -85,7 +99,8 @@
 }
 
 .dropdown button:hover {
-    background-color: #6c6c6c;
+    background-color: var(--accent-color);
+    color: var(--background-color);
 }
 
 /* Icon next to menu items */
@@ -96,7 +111,7 @@
     cursor: pointer;
     display: inline-block;
     vertical-align: middle;
-    fill: #5f6368;
+
     transition: fill 0.2s ease;
     border-radius: 10px;
     transition: transform 0.3s ease;
@@ -106,8 +121,8 @@
 
 /* Hover effect for home-icon */
 .home-icon:hover {
-    fill: #5f6368;
     transform: scale(1.1);
+    background-color: none;
 
     /* No background color change */
 }
@@ -116,24 +131,25 @@
 .toolbar-button {
     padding: 8px 12px;
     margin-left: 10px;
-    border: 1px solid #dadce0;
+    border: 1px solid var(--primary-color);
     border-radius: 4px;
-    background-color: #ffffff;
-    color: #3c4043;
+    background-color: var(--surface-color);
+    color: var(--text-color);
     cursor: pointer;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
     font-size: 14px;
 }
 
 .toolbar-button:hover {
-    background-color: #f1f3f4;
-    box-shadow: 0 1px 3px rgba(60, 64, 67, 0.15);
+    background-color: var(--accent-color);
+    color: var(--background-color);
+    box-shadow: 0 1px 3px rgba(100, 255, 218, 0.3);
     /* Subtle shadow on hover */
 }
 
 .toolbar-button:active {
-    background-color: #e8eaed;
-    box-shadow: inset 0 1px 3px rgba(60, 64, 67, 0.2);
+    background-color: var(--secondary-color);
+    box-shadow: inset 0 1px 3px rgba(100, 255, 218, 0.4);
 }
 
 .showarticlesbutton {
@@ -146,11 +162,16 @@
     transform: translateY(-50%);
     /* Adjust to truly center */
     padding: 8px 12px;
-    color: white;
+    color: var(--text-color);
     border-radius: 4px;
-    background-color: #000000;
-    border: 2px solid #1882fc;
+    background-color: var(--surface-color);
+    border: 2px solid var(--primary-color);
     cursor: pointer;
     transition: background-color 0.2s ease, box-shadow 0.2s ease;
     font-size: 14px;
+}
+
+.showarticlesbutton:hover {
+    background-color: var(--accent-color);
+    color: var(--background-color);
 }
