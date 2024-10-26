@@ -1,6 +1,6 @@
 // src/components/ResultsList.jsx
 import React from 'react';
-import './ResultsList.css';
+import '../styles/ResultsList.css';
 
 const ResultsList = ({ results, onSelectSequence }) => {
     return (

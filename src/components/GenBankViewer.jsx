@@ -1,7 +1,7 @@
 // src/components/GenBankViewer.jsx
 import React from 'react';
 import { Paper, Typography, Box } from '@mui/material';
-import './GenBankViewer.css';
+import '../styles/GenBankViewer.css';
 
 const GenBankViewer = ({ entry }) => {
     if (!entry || typeof entry !== 'string') {

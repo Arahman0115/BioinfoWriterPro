@@ -1,0 +1,122 @@
+:root {
+    --primary-color: #64ffda;
+    --secondary-color: #7f5af0;
+    --background-color: #16161a;
+    --surface-color: #242629;
+    --text-color: #94a1b2;
+    --heading-color: #fffffe;
+    --accent-color: #2cb67d;
+}
+
+.udropdown-user-dropdown {
+    position: relative;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+}
+
+.udropdown-user-profile {
+
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    z-index: 1002;
+    width: 70px;
+    height: 70px;
+    border: 2px solid var(--accent-color);
+    padding: none;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-left: 0.5rem;
+}
+
+.profile-pic-placeholder {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--surface-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--text-color);
+}
+
+.udropdown-dropdown-menu {
+    margin-top: 10px;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: black;
+    border: 1px solid var(--accent-color);
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    min-width: 200px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+    z-index: 1200;
+}
+
+.udropdown-dropdown-menu:hover {
+    transform: translateY(10px);
+}
+
+.udropdown-dropdown-menu.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.udropdown-user-info {
+    margin: 0;
+    padding: 8px 0;
+    color: var(--heading-color);
+    font-size: 0.95rem;
+    border-bottom: 1px solid var(--text-color);
+}
+
+.udropdown-dropdown-button {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.udropdown-dropdown-button:hover {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+}
+
+.udropdown-dropdown-button:active {
+    transform: translateY(1px);
+}
+
+.udropdown-dropdown-button::after {
+    content: "→";
+    margin-left: 10px;
+    transition: transform 0.3s ease;
+}
+
+.udropdown-dropdown-button:hover::after {
+    transform: translateX(5px);
+}
+
+.profile-pic {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

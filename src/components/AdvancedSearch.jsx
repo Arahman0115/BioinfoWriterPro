@@ -1,5 +1,5 @@
 // src/components/AdvancedSearch.jsx
-import './AdvancedSearch.css';
+import '../styles/AdvancedSearch.css';
 import React, { useState } from 'react';
 
 const AdvancedSearch = ({ criteria, setCriteria }) => {

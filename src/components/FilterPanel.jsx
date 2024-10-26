@@ -1,6 +1,6 @@
 // src/components/FilterPanel.jsx
 import React from 'react';
-import './FilterPanel.css';
+import '../styles/FilterPanel.css';
 const FilterPanel = ({ filters, setFilters }) => {
     const handleFilterChange = (e) => {
         setFilters({ ...filters, [e.target.name]: e.target.value });

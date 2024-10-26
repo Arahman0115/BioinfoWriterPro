@@ -320,7 +320,7 @@ export const searchGene = async (geneName) => {
     console.log('Searching for gene:', geneName);
     const params = {
         db: 'gene',
-        term: `${geneName}[Gene Name] AND "Homo sapiens"[Organism]`,
+        term: `${geneName}[Gene Name]`,
         retmode: 'json',
         retmax: 50
     };

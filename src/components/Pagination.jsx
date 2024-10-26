@@ -1,6 +1,6 @@
 // src/components/Pagination.jsx
 import React from 'react';
-import './Pagination.css';
+import '../styles/Pagination.css';
 const Pagination = ({ currentPage, totalPages, onPageChange }) => {
     return (
         <div className="pagination">

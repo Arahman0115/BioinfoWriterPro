@@ -1,0 +1,88 @@
+.blast-container {
+    width: 100vw;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #000000;
+    color: #ffffff;
+    min-height: 100vh;
+}
+
+.blast-home-button {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    background-color: #46ad69;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.blast-home-button:hover {
+    background-color: #3a8f57;
+}
+
+h1 {
+    color: #46ad69;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+}
+
+textarea,
+select {
+    margin-bottom: 10px;
+    padding: 10px;
+    background-color: #111111;
+    color: #ffffff;
+    border: 1px solid #46ad69;
+    border-radius: 5px;
+}
+
+button {
+    padding: 10px 20px;
+    background-color: #46ad69;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #3a8f57;
+}
+
+button:disabled {
+    background-color: #2c2c2c;
+    cursor: not-allowed;
+}
+
+.error {
+    color: #ff6b6b;
+    margin-top: 20px;
+}
+
+.results {
+    margin-top: 20px;
+}
+
+.results h2 {
+    color: #46ad69;
+}
+
+.results pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #111111;
+    color: #94a1b2;
+    padding: 15px;
+    border-radius: 5px;
+    border: 1px solid #46ad69;
+    overflow-x: auto;
+}

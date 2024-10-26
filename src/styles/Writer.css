@@ -1,0 +1,836 @@
+:root {
+    --primary-color: #46ad69;
+    --secondary-color: #7f5af0;
+    --background-color: #16161a;
+    --surface-color: #242629;
+    --text-color: #94a1b2;
+    --heading-color: #fffffe;
+    --accent-color: #2cb67d;
+    --border-radius: 10px;
+    --transition-speed: 0.3s;
+    --toolbar-height: 60px;
+}
+
+
+
+.writer-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    width: 100%;
+    margin: 0 auto;
+    padding: 1rem;
+    background-color: var(--background-color);
+    overflow: hidden;
+
+}
+
+.writing-area-container::-webkit-scrollbar {
+    display: none;
+}
+
+.writing-area-container::-webkit-scrollbar {
+    width: 10px;
+    /* Width of the entire scrollbar */
+}
+
+.writing-area-container::-webkit-scrollbar-track {
+    background: var(--surface-color);
+    /* Color of the tracking area */
+}
+
+.writing-area-container::-webkit-scrollbar-thumb {
+    background-color: #46ad69;
+    /* Color of the scroll thumb */
+    border-radius: 20px;
+    /* Roundness of the scroll thumb */
+    border: 2px solid var(--surface-color);
+    /* Creates padding around scroll thumb */
+}
+
+.toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    /* Increase this value */
+    height: var(--toolbar-height);
+    /* Add any other toolbar styles here */
+}
+
+.writer-main {
+    display: flex;
+    flex: 1;
+    gap: 1rem;
+    height: calc(100vh - var(--toolbar-height) - 5rem);
+    overflow: hidden;
+    background-color: var(--background-color);
+
+}
+
+.writer {
+    flex: 1;
+    max-height: calc(100vh - var(--toolbar-height) - 1rem);
+
+
+
+    margin-top: 4rem;
+}
+
+.title-input {
+    font-size: 24px;
+    font-weight: bold;
+    padding: 15px;
+    margin-bottom: 20px;
+    margin-top: 10px;
+    border: 1px solid #46ad69;
+    border-radius: 10px;
+    width: 90%;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    align-self: center;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    transition: all 0.3s ease;
+    font-family: Arial, Helvetica, sans-serif'Courier New', Courier, monospace;
+
+}
+
+.title-section {
+    background-color: var(--background-color);
+    border-radius: 5px;
+    width: 100%;
+}
+
+.title-input:focus {
+    outline: none;
+    border-color: #46ad69;
+    box-shadow: 0 0 10px #046c39;
+    font-size: 24px;
+    font-weight: bold;
+    padding: 5px 35px;
+
+}
+
+.project-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    /* Center the title */
+    text-align: center;
+    /* Ensures the text inside is centered */
+    width: 100%;
+    /* Take full width to properly center */
+}
+
+.textarea-wrapper {
+    position: relative;
+    width: 100%;
+    flex-grow: 1;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+
+
+.writing-area:focus {
+    outline: none;
+    border-color: #46ad69;
+
+
+
+}
+
+.suggestion-overlay {
+    flex: 0 0 20%;
+    height: auto;
+    max-height: calc(100vh - var(--toolbar-height) - 3rem);
+    position: sticky;
+    top: calc(var(--toolbar-height) + 1rem);
+    right: 0;
+    overflow-y: none;
+
+    margin-left: 0;
+    border: 2px solid #46ad69;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #000000;
+    backdrop-filter: blur(5px);
+    box-shadow: 0 4px 6px rgba(1, 87, 13, 0.1);
+    position: relative;
+}
+
+.sugtitle {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--heading-color);
+    font-family: 'Arial', sans-serif;
+    text-align: center;
+    margin-bottom: 20px;
+    position: relative;
+
+    letter-spacing: 1px;
+}
+
+.sugtitle::after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 3px;
+    background-color: #46ad69;
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 2px;
+}
+
+
+
+
+
+.suggestion {
+    color: var(--text-color);
+    font-family: 'Arial', sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    padding: 25px;
+
+    border-radius: 3px;
+
+
+
+}
+
+.collapsible-bar {
+    position: absolute;
+    bottom: 0;
+    width: 100vw;
+    height: 40px;
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: height 0.3s ease;
+    overflow: hidden;
+}
+
+.collapsible-bar:hover {
+    height: 120px;
+}
+
+.controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.controls button {
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    background-color: var(--secondary-color);
+    color: var(--background-color);
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.controls button:hover {
+    background-color: var(--accent-color);
+}
+
+.character-count {
+    margin-top: 10px;
+    font-size: 14px;
+    color: var(--text-color);
+    text-align: center;
+}
+
+.outline-box {
+    flex: 0 0 20%;
+    /* Adjust width as needed */
+    height: auto;
+    max-height: calc(100vh - var(--toolbar-height) - 3rem);
+    margin-bottom: 0;
+    margin-right: 0;
+    position: sticky;
+    top: calc(var(--toolbar-height) + 1rem);
+    overflow-y: auto;
+    border: 1px solid #46ad69;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #000000;
+}
+
+.outline-box:hover,
+.suggestion-overlay:hover,
+.writing-area-container:hover {
+    box-shadow: 0 8px 20px rgba(11, 123, 3, 0.8);
+}
+
+.styled-block {
+    position: relative;
+    font-size: 14px;
+    /* Adjust as needed */
+    line-height: 20px;
+    /* Adjust as needed */
+    pointer-events: none;
+    z-index: 1;
+    background-color: #46ad69;
+    padding: 5px;
+    border-radius: 5px;
+}
+
+
+
+.outline-box h2 {
+    font-size: 22px;
+    margin-bottom: 15px;
+    color: var(--text-color);
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif'Courier New', Courier, monospace;
+}
+
+.outline-box ul {
+    list-style: none;
+    padding-left: 0;
+
+}
+
+.outline-box ul li {
+    padding: 10px 15px;
+    margin-bottom: 10px;
+    font-size: 16px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-family: Arial, Helvetica, sans-serif'Courier New', Courier, monospace;
+    border-radius: 5px;
+    cursor: grab;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    user-select: none;
+    display: flex;
+    align-items: center;
+}
+
+.outline-box ul li::before {
+    content: '☰';
+    margin-right: 10px;
+    color: #46ad69;
+}
+
+.outline-box ul li:hover {
+    background-color: var(--accent-color);
+    color: var(--background-color);
+}
+
+.outline-box ul li:active {
+    cursor: grabbing;
+    background-color: var(--accent-color);
+    color: var(--background-color);
+}
+
+.outline-box li[data-rbd-dragging="true"] {
+    background-color: var(--accent-color);
+    box-shadow: 0 2px 10px rgba(100, 255, 218, 0.3);
+}
+
+.new-section {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.feedback-container {
+    position: fixed;
+    top: calc(var(--toolbar-height) + 10px);
+    /* Adjust based on your toolbar height */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    pointer-events: none;
+}
+
+.outline-container {
+    background-color: none;
+    width: 100%;
+    z-index: -9;
+}
+
+.feedback-message {
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 14px;
+    text-align: left;
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.new-section input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #46ad69;
+    border-radius: 5px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+.new-section button {
+    padding: 8px 12px;
+    border: none;
+    background-color: #46ad69;
+    color: var(--background-color);
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.new-section button:hover {
+    background-color: var(--accent-color);
+}
+
+.outline-box::-webkit-scrollbar {
+    width: 2px;
+}
+
+.outline-box::-webkit-scrollbar-track {
+    background: var(--surface-color);
+}
+
+.outline-box::-webkit-scrollbar-thumb {
+    background-color: #46ad69;
+    border-radius: 10px;
+}
+
+.outline-box::-webkit-scrollbar-thumb:hover {
+    background-color: var(--accent-color);
+}
+
+.outline-box {
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--surface-color);
+}
+
+.spinnerbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100px;
+    margin-top: 20px;
+}
+
+.title-section {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.title-submit {
+    padding: 8px 12px;
+    background-color: #46ad69;
+    color: var(--background-color);
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+
+}
+
+.title-submit:hover {
+    background-color: var(--accent-color);
+}
+
+.side-panel {
+    position: fixed;
+    top: calc(1.5vh + var(--toolbar-height));
+    right: 0;
+    /* Keep it aligned to the right */
+    flex: 0 0 20%;
+    width: 450px;
+    /* Set a fixed width */
+    height: calc(100vh - var(--toolbar-height) - 2rem);
+    background-color: var(--surface-color);
+    border: 1px solid #46ad69;
+
+    /* Change transition property to transform */
+    overflow-y: auto;
+    z-index: 999;
+    padding: 20px;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    border-radius: 10px;
+    transform: translateX(100%);
+    transition: transform 0.6s ease;
+    /* Hide it off-screen initially */
+}
+
+.side-panel.visible {
+    transform: translateX(0);
+
+
+    /* Show it when the 'visible' class is added */
+}
+
+/* Title styling */
+.side-panel h2 {
+    margin: 0 0 15px;
+    font-size: 20px;
+    color: var(--text-color);
+    font-weight: bold;
+}
+
+/* Unordered list styles */
+.side-panel ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+/* List item styles */
+.side-panel li {
+    margin-bottom: 15px;
+    word-wrap: break-word;
+}
+
+/* Link styles */
+.side-panel li a {
+    color: #46ad69;
+    text-decoration: none;
+    display: block;
+    overflow-wrap: break-word;
+}
+
+/* Link hover effect */
+.side-panel li a:hover {
+    text-decoration: underline;
+}
+
+/* Button styling */
+.sidepanelbutton {
+    background-color: #46ad69;
+    color: var(--background-color);
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    cursor: pointer;
+    position: fixed;
+    top: 70px;
+    right: 0;
+    z-index: 1001;
+    /* Ensure it's above both the toolbar and side panel */
+    transition: background-color 0.3s, right 0.3s ease;
+    /* Add transition for smooth movement */
+}
+
+/* Button hover effect */
+.sidepanelbutton:hover {
+    background-color: var(--accent-color);
+}
+
+/* Button position when side panel is visible */
+.sidepanelbutton.panel-visible {
+    right: 250px;
+    /* Move button when panel is visible */
+}
+
+
+
+.articlebox {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    border: 2px solid #46ad69;
+    border-radius: 5px;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.writing-area-container {
+    width: 100%;
+    height: 70vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    /* Changed from center to flex-start */
+    border: 2px solid #46ad69;
+    border-radius: 10px;
+    padding: 20px;
+    align-self: center;
+    overflow-y: auto;
+    background-color: #000000;
+    /* Add this to enable scrolling if content exceeds container height */
+}
+
+/* Add or modify this class to style the Draft.js editor */
+.DraftEditor-root {
+    flex: 1;
+    padding: 5px;
+    /* Add padding around the text */
+    font-size: 16px;
+    /* Adjust font size as needed */
+    line-height: 1.6;
+    /* Adjust line height for better readability */
+    color: var(--text-color);
+    /* Ensure text color contrasts with background */
+}
+
+/* Style the editor content */
+.DraftEditor-editorContainer {
+    height: 100%;
+}
+
+/* Ensure the text doesn't touch the edges on smaller screens */
+@media (max-width: 768px) {
+    .DraftEditor-root {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 768px) {
+    .writer-container {
+        padding: 1rem;
+    }
+
+    .writer-main {
+        padding-top: 0.5rem;
+    }
+
+    .writer {
+        max-height: calc(100vh - var(--toolbar-height) - 1rem);
+    }
+}
+
+@media (max-width: 1024px) {
+    .writer-main {
+        flex-direction: column;
+    }
+
+    .outline-box,
+    .suggestion-overlay {
+        flex: 0 0 auto;
+        width: 100%;
+        max-height: 30vh;
+        position: static;
+    }
+}
+
+.rotate-device-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    text-align: center;
+    padding: 20px;
+}
+
+
+
+
+@media (max-width: 768px) {
+    .writer-container {
+        pointer-events: none;
+    }
+
+    .DraftEditor-root {
+        pointer-events: none;
+    }
+
+    .outline-box,
+    .suggestion-overlay,
+    .side-panel {
+        display: none;
+    }
+
+    .writer-main {
+        overflow-y: auto;
+        max-height: calc(100vh - var(--toolbar-height));
+    }
+
+    .toolbar {
+        display: none;
+    }
+}
+
+@media (min-width: 769px) {
+    .rotate-device-message {
+        display: none;
+    }
+}
+
+@media only screen and (max-device-width: 480px) and (max-device-width: 640px) {
+    .writer-container {
+        padding: 0.5rem;
+    }
+
+    .writer-main {
+        flex-direction: row;
+        gap: 0.5rem;
+        height: calc(100vh - 1rem);
+    }
+
+    .outline-box {
+        flex: 0 0 30%;
+        font-size: 0.8rem;
+        max-height: 100%;
+        overflow-y: auto;
+    }
+
+    .outline-box h2 {
+        font-size: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .outline-box ul {
+        padding-left: 0.5rem;
+    }
+
+    .outline-box li {
+        margin-bottom: 0.3rem;
+        font-size: 0.7rem;
+    }
+
+    .writer {
+        flex: 0 0 70%;
+        margin-top: 0;
+    }
+
+    .title-input,
+    .project-title {
+        font-size: 1rem;
+        margin-bottom: 0.3rem;
+        padding: 0.3rem;
+    }
+
+    .writing-area-container {
+        height: calc(100% - 2rem);
+        padding: 0.3rem;
+    }
+
+    .DraftEditor-root {
+        font-size: 0.8rem;
+        line-height: 1.3;
+    }
+
+    .character-count {
+        font-size: 0.7rem;
+    }
+
+    .suggestion-overlay,
+    .toolbar,
+    .side-panel,
+    .new-section {
+        display: none;
+    }
+
+    body {
+        /* Add any specific body styles for phone screens */
+        font-size: 14px;
+    }
+}
+
+/* Ensure larger screens maintain normal layout */
+
+.history-button {
+    position: absolute;
+    bottom: 10px;
+    display: flex;
+
+    align-items: center;
+    align-self: center;
+    justify-content: center;
+    background-color: #46ad69;
+    color: var(--background-color);
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 0.8rem;
+    transition: background-color 0.3s ease;
+}
+
+.history-button:hover {
+    background-color: var(--accent-color);
+}
+
+.suggestion-history {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    max-height: calc(80vh - var(--toolbar-height) - 3rem);
+    transition: transform 0.3s ease;
+    overflow-y: auto;
+}
+
+.history-item {
+    background-color: var(--surface-color);
+    border: 1px solid #46ad69;
+    border-radius: 5px;
+    padding: 10px;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.history-item:last-child {
+    margin-bottom: 0;
+}
+
+.insert-suggestion-button {
+    background-color: #46ad69;
+    color: var(--background-color);
+    border: none;
+    padding: 3px 8px;
+    margin-left: 10px;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    transition: background-color 0.3s ease;
+}
+
+.insert-suggestion-button:hover {
+    background-color: var(--accent-color);
+}
+
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* ... existing styles ... */
+}
+
+.writing-area-container {
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.writing-area-container.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.project-title.untitled {
+    color: var(--accent-color);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.5;
+    }
+
+    100% {
+        opacity: 1;
+    }
+}
