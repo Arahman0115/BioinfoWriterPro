@@ -11,7 +11,7 @@ const ExplanationText = styled.div`
   color: #e0e0e0;
 
   h1, h2, h3, h4, h5, h6 {
-    color: #1882fc;
+    color: #ffffff;
     margin-top: 20px;
     margin-bottom: 10px;
   }
@@ -30,7 +30,7 @@ const ExplanationText = styled.div`
   }
 
   strong {
-    color: #1882fc;
+    color: #46ad69;
   }
 `;
 

@@ -50,6 +50,7 @@
     overflow: hidden;
     border-radius: 8px;
     border: 1px solid #ffffff;
+    background-color: #ffffff;
 }
 
 .image-preview img {

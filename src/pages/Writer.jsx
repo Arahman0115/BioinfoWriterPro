@@ -194,24 +194,46 @@ const Writer = () => {
       const currentContent = editorState.getCurrentContent().getPlainText();
       if (currentContent.trim()) {
         try {
-          const response = await fetch('http://localhost:5000/api/suggest', {
+          const payload = {
+            text: currentContent.trim()
+          };
+    
+          console.log('Sending request payload:', payload);
+    
+          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/predict`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
+              'Accept': 'application/json',
             },
-            body: JSON.stringify({ text: currentContent }),
+            body: JSON.stringify(payload)
           });
+    
           const data = await response.json();
+          
+          if (!response.ok) {
+            console.error('Server error details:', data);
+            throw new Error(data.error || 'Server error');
+          }
+    
+          if (!data.suggestion) {
+            throw new Error('No suggestion received from server');
+          }
+    
           setSuggestion(data.suggestion);
           setPreviousSuggestions(prev => [...prev, data.suggestion]);
           setIsEditing(false);
         } catch (error) {
-          console.error('Error getting suggestion:', error);
+          console.error('Error getting suggestion:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+          });
           setIsEditing(false);
+          setFeedbackMessage('Failed to get suggestion');
         }
       }
     }, 2000);
-
     // Handle saving with proper project ID management
     saveTimeoutRef.current = setTimeout(async () => {
       try {
