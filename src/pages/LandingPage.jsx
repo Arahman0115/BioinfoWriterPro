@@ -2,26 +2,27 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/LandingPage.css';
 import wbg from '../assets/wbg.png'; // Assume you have a logo file
+import deoxy from '../assets/deoxy.png';
 
 const LandingPage = () => {
     return (
         <div className="landing-container">
             <nav className="landing-nav">
-                <img src={wbg} alt="BioinfoWriterPro Logo" className="logo" />
+                <img src={deoxy} alt="BioinfoWriterPro Logo" className="logo" />
                 <div className="nav-links">
-                    <Link to="/features">Features</Link>
+                    <Link to="/demo">Features</Link>
                     <Link to="/pricing">Pricing</Link>
-                    <Link to="/about">About</Link>
+
                     <Link to="/login" className="login-btn">Log In</Link>
                     <Link to="/signup" className="signup-btn">Sign Up</Link>
                 </div>
             </nav>
             <header className="hero">
-                <h1>BioScribe</h1>
+                <h1 className="hero-title">BioScribe</h1>
                 <p className="tagline">Accelerate Your Bioinformatics Research with AI-Powered Writing</p>
                 <div className="cta-buttons">
-                    <Link to="/signup" className="cta-button primary">Start Free Trial</Link>
-                    <Link to="/demo" className="cta-button secondary">Watch Demo</Link>
+                    <Link to="/signup" className="cta-button primary">Get Started</Link>
+                    <Link to="/demo" className="cta-button secondary">Docs</Link>
                 </div>
             </header>
             <section className="features-section">

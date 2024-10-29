@@ -1,18 +1,8 @@
-:root {
-    --primary-color: #64ffda;
-    --secondary-color: #7f5af0;
-    --background-color: #16161a;
-    --surface-color: #242629;
-    --text-color: #94a1b2;
-    --heading-color: #fffffe;
-    --accent-color: #2cb67d;
-}
-
 body {
     margin: 0;
     font-family: 'Inter', sans-serif;
-    background-color: var(--background-color);
-    color: var(--text-color);
+    background-color: #000000;
+    color: #ffffff;
     line-height: 1.6;
 }
 
@@ -27,13 +17,13 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: 1rem 5%;
-    background-color: var(--surface-color);
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    background-color: #000000;
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
+    border-bottom: 1px solid #ffffff;
 }
 
 .logo {
     height: 80px;
-
 }
 
 .nav-links {
@@ -42,7 +32,7 @@ body {
 }
 
 .nav-links a {
-    color: var(--text-color);
+    color: #ffffff;
     text-decoration: none;
     margin-left: 1.5rem;
     font-weight: 500;
@@ -50,7 +40,7 @@ body {
 }
 
 .nav-links a:hover {
-    color: var(--primary-color);
+    color: #808080;
 }
 
 .login-btn,
@@ -61,33 +51,42 @@ body {
 }
 
 .login-btn {
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
+    color: #ffffff;
+    border: 2px solid #ffffff;
+    background-color: #000000;
 }
 
 .signup-btn {
-    background-color: var(--primary-color);
-    color: var(--background-color);
+    color: #000000;
+    border: 2px solid #ffffff;
+}
+
+.signup-btn:hover {
+    background-color: #000000;
+    border: 2px solid #ffffff;
+    color: #ffffff;
 }
 
 .hero {
     text-align: center;
     padding: 5rem 1rem;
-    background: linear-gradient(135deg, var(--surface-color), var(--background-color));
-    color: var(--heading-color);
+    background: #0b0b0b;
+    color: #ffffff;
+    border-bottom: 1px solid #333333;
 }
 
-.hero h1 {
+.hero-title {
     font-size: 3.5rem;
     margin-bottom: 1rem;
     font-weight: 700;
+    color: #ffffff;
 }
 
 .tagline {
     font-size: 1.5rem;
     margin-bottom: 2rem;
     font-weight: 300;
-    color: var(--text-color);
+    color: #ffffff;
 }
 
 .cta-buttons {
@@ -99,7 +98,6 @@ body {
 .cta-button {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
-    border: none;
     border-radius: 5px;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -108,33 +106,35 @@ body {
 }
 
 .primary {
-    background-color: var(--primary-color);
-    color: var(--background-color);
+    background-color: #ffffff;
+    color: #000000;
+    border: 1px solid #ffffff;
 }
 
 .primary:hover {
-    background-color: var(--accent-color);
+    background-color: #000000;
+    color: #ffffff;
 }
 
 .secondary {
-    background-color: transparent;
-    color: var(--primary-color);
-    border: 2px solid var(--primary-color);
+    background-color: #000000;
+    color: #ffffff;
+    border: 1px solid #ffffff;
 }
 
 .secondary:hover {
-    background-color: var(--primary-color);
-
+    background-color: #333333;
 }
 
 .features-section {
     padding: 5rem 5%;
-    background-color: var(--surface-color);
+    background-color: #000000;
+    border-bottom: 1px solid #333333;
 }
 
 .features-section h2 {
     text-align: center;
-    color: var(--heading-color);
+    color: #ffffff;
     margin-bottom: 3rem;
 }
 
@@ -145,37 +145,39 @@ body {
 }
 
 .feature-item {
-    background-color: var(--background-color);
+    background-color: #000000;
     padding: 2rem;
     border-radius: 10px;
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-
+    border: 1px solid #ffffff;
 }
 
 .feature-item:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(1, 255, 213, 0.2);
+    box-shadow: 0 10px 20px rgba(255, 255, 255, 0.1);
 }
 
 .feature-icon {
     font-size: 3rem;
     margin-bottom: 1rem;
+    color: #ffffff;
 }
 
 .feature-item h3 {
-    color: var(--heading-color);
+    color: #ffffff;
     margin-bottom: 0.5rem;
 }
 
 .testimonial-section {
-    background-color: var(--background-color);
+    background-color: #000000;
     padding: 5rem 5%;
     text-align: center;
+    border-top: 1px solid #333333;
 }
 
 .testimonial-section h2 {
-    color: var(--heading-color);
+    color: #ffffff;
     margin-bottom: 2rem;
 }
 
@@ -183,6 +185,7 @@ body {
     max-width: 800px;
     margin: 0 auto;
     font-style: italic;
+    color: #ffffff;
 }
 
 .testimonial cite {
@@ -190,7 +193,7 @@ body {
     margin-top: 1rem;
     font-style: normal;
     font-weight: 600;
-    color: var(--heading-color);
+    color: #ffffff;
 }
 
 @media (max-width: 768px) {

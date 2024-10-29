@@ -34,7 +34,7 @@ const Protein = () => {
         setError('');
         setStatus('Submitting job...');
         try {
-            const response = await axios.post('http://localhost:3001/api/predict-structure', { sequence });
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/predict-structure`, { sequence });
             setPredictionResult(response.data);
             setStatus('');
         } catch (err) {

@@ -1,9 +1,7 @@
 /* General styles */
 body {
-    background-color: #242629;
-    /* Dark background */
-    color: #94a1b2;
-    /* Light text color */
+    background-color: #000000;
+    color: #ffffff;
     font-family: 'Arial', sans-serif;
 }
 
@@ -12,16 +10,15 @@ body {
     width: 100vw;
     height: 100vh;
     padding: 20px;
-
     background-color: #000000;
-    box-shadow: 0 4px 15px rgba(4, 255, 121, 0.2);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
     transition: all 0.3s ease;
     overflow-y: auto;
 }
 
 .research-container h1 {
     text-align: center;
-    color: #46ad69;
+    color: darkgreen;
     margin-bottom: 20px;
 }
 
@@ -39,27 +36,27 @@ body {
 .research-search-input {
     flex: 1;
     padding: 12px 15px;
-    border: 2px solid #46ad69;
+    border: 1px solid #ffffff;
     border-right: none;
     border-radius: 4px 0 0 4px;
-    background-color: #2e3039;
-    color: #fffffe;
+    background-color: #000000;
+    color: #ffffff;
     font-size: 1rem;
     outline: none;
     transition: all 0.3s ease;
 }
 
 .research-search-input:focus {
-    box-shadow: 0 0 0 2px rgba(4, 255, 121, 0.3);
+    box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
 }
 
 .research-search-button {
     padding: 12px 20px;
-    border: 2px solid #04ff79;
+    border: 1px solid #ffffff;
     border-left: none;
     border-radius: 0 4px 4px 0;
-    background-color: #04ff79;
-    color: #242629;
+    background-color: darkgreen;
+    color: #ffffff;
     cursor: pointer;
     transition: all 0.3s ease;
     font-size: 1rem;
@@ -67,18 +64,12 @@ body {
 }
 
 .research-search-button:hover {
-    background-color: #136e31;
-    border-color: #46ad69;
-}
-
-.research-search-button:active {
-    background-color: #00cc61;
-    border-color: #00cc61;
+    background-color: #333333;
 }
 
 .research-search-button:disabled {
-    background-color: #555;
-    border-color: #555;
+    background-color: #333333;
+    border-color: #666666;
     cursor: not-allowed;
     opacity: 0.7;
 }
@@ -90,9 +81,9 @@ body {
     align-items: center;
     gap: 8px;
     padding: 12px 20px;
-    border: none;
-    background-color: #46ad69;
-    color: #242629;
+    border: 1px solid #ffffff;
+    background-color: #000000;
+    color: #ffffff;
     cursor: pointer;
     transition: background-color 0.3s ease;
     font-size: 1rem;
@@ -101,14 +92,13 @@ body {
 }
 
 .research-home-button:hover {
-    background-color: #46ad69;
+    background-color: #333333;
 }
 
 /* Error message */
 .research-error {
-    background-color: #ff4d4d;
-    /* Red for error messages */
-    color: #242629;
+    background-color: #ff0000;
+    color: #ffffff;
     padding: 15px;
     border-radius: 4px;
     text-align: center;
@@ -120,43 +110,37 @@ body {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    /* Space between articles */
 }
 
 .research-header {
     text-align: center;
-    color: #46ad69;
+    color: #ffffff;
     margin-bottom: 20px;
     font-size: 3.5rem;
     text-wrap: wrap;
 }
 
 .research-article-box {
-    background-color: #2e3039;
-    /* Dark background for articles */
-    border: 1px solid #46ad69;
-    /* Border for articles */
+    background-color: #000000;
+    border: 1px solid #ffffff;
     border-radius: 8px;
     padding: 15px;
-    box-shadow: 0 2px 10px rgba(4, 255, 121, 0.1);
+    box-shadow: 0 2px 10px rgba(255, 255, 255, 0.1);
     transition: box-shadow 0.3s ease;
 }
 
 .research-article-box:hover {
-    box-shadow: 0 4px 20px rgba(4, 255, 121, 0.2);
-    /* Shadow effect on hover */
+    box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
 }
 
 .research-article-box h3 {
-    color: #46ad69;
-    /* Title color */
+    color: #ffffff;
     margin: 0 0 10px;
 }
 
 .research-article-box p {
     margin: 10px 0;
-    color: #94a1b2;
-    /* Slightly lighter for text */
+    color: #ffffff;
 }
 
 /* Link styling */
@@ -164,17 +148,16 @@ body {
     display: inline-block;
     margin-top: 10px;
     padding: 8px 12px;
-    background-color: #46ad69;
-    /* Link button background */
-    color: #242629;
+    background-color: #000000;
+    color: #ffffff;
     text-decoration: none;
     border-radius: 4px;
+    border: 1px solid #ffffff;
     transition: background-color 0.3s ease;
 }
 
 .research-article-link:hover {
-    background-color: #136e31;
-    /* Darker blue on hover */
+    background-color: #333333;
 }
 
 /* Pagination styles */
@@ -187,42 +170,37 @@ body {
 
 .research-pagination-button {
     padding: 10px 12px;
-    border: none;
+    border: 1px solid #ffffff;
     border-radius: 4px;
-    background-color: #46ad69;
-    /* Button background */
-    color: #242629;
-    /* Button text color */
+    background-color: #000000;
+    color: #ffffff;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .research-pagination-button:hover {
-    background-color: #136e31;
-    /* Dark blue on hover */
+    background-color: #333333;
 }
 
 .research-pagination-info {
-    color: #94a1b2;
-    /* Light text for pagination info */
+    color: #ffffff;
 }
 
 .research-add-project-button {
     display: inline-block;
     margin-top: 10px;
     padding: 13px 13px;
-    background-color: #46ad69;
-    /* Link button background */
-    color: #242629;
+    background-color: #000000;
+    color: #ffffff;
     text-decoration: none;
     font-size: 15px;
     border-radius: 4px;
+    border: 1px solid #ffffff;
     transition: background-color 0.3s ease;
     cursor: pointer;
-    border: none;
     margin-left: 10px;
 }
 
 .research-add-project-button:hover {
-    background-color: #136e31;
+    background-color: #333333;
 }

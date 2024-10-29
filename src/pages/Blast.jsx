@@ -149,7 +149,7 @@ const Blast = () => {
 
     const submitBlastJob = async (sequence, database) => {
         console.log('Submitting BLAST job...');
-        const proxyUrl = '/api/proxy';
+        const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
 
         const params = new URLSearchParams({
@@ -160,26 +160,26 @@ const Blast = () => {
         });
 
         try {
-            const response = await axios.post(proxyUrl, params.toString(), {
+            const response = await axios.post(proxyUrl, params, {
                 params: { url: targetUrl },
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
             });
 
             console.log('BLAST job submission response:', response);
-            console.log('Response data:', response.data);
 
-            if (typeof response.data === 'string' && response.data.includes('RID')) {
-                const ridMatch = response.data.match(/RID = (.*)/);
+            if (typeof response.data === 'string') {
+                const ridMatch = response.data.match(/RID\s*=\s*([\w\d-]+)/);
                 if (ridMatch && ridMatch[1]) {
-                    console.log('Extracted RID from HTML:', ridMatch[1]);
-                    return ridMatch[1].trim();
+                    const rid = ridMatch[1].trim();
+                    console.log('Extracted RID:', rid);
+                    return rid;
                 }
-            } else if (response.data && response.data.RID) {
-                console.log('RID from JSON response:', response.data.RID);
-                return response.data.RID;
             }
 
-            throw new Error('No RID received from BLAST server');
+            console.error('No RID found in response. Full response:', response.data);
+            throw new Error('No RID received from BLAST server. Check server logs for full response.');
         } catch (error) {
             console.error('Error submitting BLAST job:', error);
             if (error.response) {
@@ -190,57 +190,105 @@ const Blast = () => {
     };
 
     const checkBlastStatus = async (rid) => {
-        console.log('Checking BLAST status for RID:', rid);
-        const proxyUrl = '/api/proxy';
+        console.log('Checking BLAST status...');
+        const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
+
+        const params = new URLSearchParams({
+            CMD: 'Get',
+            FORMAT_OBJECT: 'SearchInfo',
+            RID: rid
+        });
 
         try {
             const response = await axios.get(proxyUrl, {
                 params: {
                     url: targetUrl,
-                    CMD: 'Get',
-                    FORMAT_OBJECT: 'SearchInfo',
-                    RID: rid
+                    ...Object.fromEntries(params)
+                },
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
 
-            console.log('BLAST status response:', response.data);
+            console.log('BLAST status response:', response);
 
-            if (typeof response.data === 'string' && response.data.includes('Status=')) {
-                const statusMatch = response.data.match(/Status=(.*)/);
-                if (statusMatch && statusMatch[1]) {
-                    return statusMatch[1].trim();
+            if (typeof response.data === 'string') {
+                if (response.data.includes('Status=WAITING')) {
+                    return 'WAITING';
+                } else if (response.data.includes('Status=READY')) {
+                    return 'READY';
+                } else if (response.data.includes('Status=FAILED')) {
+                    throw new Error('BLAST job failed');
+                } else {
+                    console.error('Unexpected status in response:', response.data);
+                    throw new Error('Unexpected BLAST status');
                 }
-            } else if (response.data && response.data.STATUS) {
-                return response.data.STATUS;
+            } else {
+                console.error('Unexpected response type:', typeof response.data);
+                console.log('Raw response data:', response.data);
+                throw new Error('Unexpected response format from BLAST server');
             }
-
-            throw new Error('Invalid status response from BLAST server');
         } catch (error) {
             console.error('Error checking BLAST status:', error);
-            throw error;
+            if (error.response) {
+                console.error('Error response:', error.response.data);
+            }
+            throw new Error(`Failed to check BLAST status: ${error.message}`);
         }
     };
 
     const getBlastResults = async (rid) => {
-        console.log('Fetching BLAST results for RID:', rid);
-        const proxyUrl = '/api/proxy';
+        console.log('Fetching BLAST results...');
+        const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
+
+        const params = new URLSearchParams({
+            CMD: 'Get',
+            FORMAT_TYPE: 'JSON2_S',
+            RID: rid
+        });
 
         try {
             const response = await axios.get(proxyUrl, {
                 params: {
                     url: targetUrl,
-                    CMD: 'Get',
-                    FORMAT_TYPE: 'JSON2_S',
-                    RID: rid
+                    ...Object.fromEntries(params)
+                },
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
                 }
             });
-            console.log('BLAST results response:', response.data);
-            return response.data;
+
+            console.log('BLAST results response type:', typeof response.data);
+            console.log('BLAST results response preview:',
+                typeof response.data === 'string'
+                    ? response.data.substring(0, 500)
+                    : JSON.stringify(response.data).substring(0, 500)
+            );
+
+            if (typeof response.data === 'string') {
+                try {
+                    return JSON.parse(response.data);
+                } catch (parseError) {
+                    console.error('Error parsing JSON response:', parseError);
+                    console.log('Raw response data:', response.data);
+                    throw new Error('Failed to parse BLAST results');
+                }
+            } else if (typeof response.data === 'object') {
+                return response.data;
+            } else {
+                console.error('Unexpected response type:', typeof response.data);
+                console.log('Raw response data:', response.data);
+                throw new Error('Unexpected response format from BLAST server');
+            }
         } catch (error) {
             console.error('Error fetching BLAST results:', error);
-            throw error;
+            if (error.response) {
+                console.error('Error response status:', error.response.status);
+                console.error('Error response data:', error.response.data);
+            }
+            throw new Error(`Failed to fetch BLAST results: ${error.message}`);
         }
     };
 

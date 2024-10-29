@@ -41,7 +41,7 @@ const Phylo = () => {
 
             console.log('Formatted sequences:', formattedSequences); // For debugging
 
-            const response = await axios.post('/api/align', { sequences: formattedSequences });
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/align`, { sequences: formattedSequences });
             setAlignedSequences(response.data.alignedSequences);
             console.log('Aligned sequences:', response.data.alignedSequences);
         } catch (err) {
@@ -55,7 +55,7 @@ const Phylo = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post('/api/construct-tree', {
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/construct-tree`, {
                 sequences: alignedSequences || sequences
             });
             console.log('Received tree data:', response.data.tree);

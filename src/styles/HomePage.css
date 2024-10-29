@@ -47,8 +47,9 @@ body {
     background-color: #000000;
     border-radius: 10px;
     padding: 0.5rem 1rem;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-    border: 1px solid #46ad69;
+    box-shadow: 0 1px 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid #403f3f;
+    ;
     margin-bottom: 1rem;
 }
 
@@ -78,7 +79,8 @@ body {
     width: 100%;
     max-width: 300px;
     padding: 0.5rem;
-    border: 1px solid #46ad69;
+    border: 1px solid white;
+    ;
     border-radius: 5px;
     background-color: #000000;
     color: var(--text-color);
@@ -130,7 +132,7 @@ body {
     width: 100%;
     margin-top: 0.5rem;
     background-color: #000000;
-    border: 0.5px solid #46ad69;
+    border: 0.5px solid #403f3f;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
     overflow: hidden;
     min-height: 50vh;
@@ -146,7 +148,8 @@ body {
     width: 100%;
     margin-top: 1rem;
     background-color: #000000;
-    border: 1px solid #46ad69;
+    border: 1px solid #403f3f;
+    ;
     box-shadow: 0 6px 15px rgba(0, 0, 0, 0.7);
     overflow: hidden;
     min-height: 30vh;
@@ -161,7 +164,7 @@ body {
 .template-section:hover,
 .recent-documents-section:hover,
 .navbar:hover {
-    box-shadow: 0 8px 20px rgba(70, 173, 105, 0.4);
+    box-shadow: 0 8px 20px rgba(146, 145, 145, 0.4);
     /* Updated to new green */
 }
 
@@ -176,9 +179,10 @@ body {
 
 .template-card,
 .project-card {
-    background-color: var(--background-color);
-    border: 1px solid #46ad69;
-    border-radius: 12px;
+    background-color: #0d0d0e;
+    border: 1px solid #403f3f;
+    ;
+    border-radius: 11px;
     padding: 1rem;
     cursor: pointer;
     transition: transform 0.3s, box-shadow 0.3s, background-color 0.3s;
@@ -196,7 +200,7 @@ body {
 .template-card:hover,
 .project-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 20px rgba(70, 173, 105, 0.4);
+    box-shadow: 0 8px 20px rgba(92, 92, 92, 0.4);
     /* Updated to new green */
     background-color: var(--surface-color);
 }
@@ -208,6 +212,7 @@ body {
     justify-content: space-between;
     height: 200px;
     overflow: visible;
+    /* Change from 'hidden' to 'visible' */
     margin-top: 10px;
     position: relative;
     min-height: 26vh;
@@ -256,12 +261,11 @@ body {
 .x-button {
     position: absolute;
     top: 5px;
-    /* Adjusted to be inside the card */
     left: 5px;
-    /* Adjusted to be inside the card */
-    width: 24px;
-    /* Increased size for better visibility */
-    height: 24px;
+    width: 40px;
+    /* Increased from 24px */
+    height: 40px;
+    /* Increased from 24px */
     background-color: var(--accent-color);
     color: var(--background-color);
     border-radius: 50%;
@@ -269,16 +273,42 @@ body {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.8rem;
+    font-size: 1rem;
+    /* Increased from 0.8rem */
     font-weight: bold;
-    transition: background-color 0.3s, transform 0.3s;
+    transition: background-color 0.3s, transform 0.3s, opacity 0.3s;
     z-index: 2;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    /* Hide by default */
+    pointer-events: none;
+    /* Ignore mouse events when hidden */
+}
+
+.project-card:hover .x-button {
+    opacity: 1;
+    pointer-events: auto;
+    /* Allow mouse events when visible */
 }
 
 .x-button:hover {
     background-color: #ff5c5c;
     transform: scale(1.1);
+}
+
+/* Add this new rule for a larger hit area */
+.x-button::before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+}
+
+/* Add this new rule for the delay on mouse leave */
+.project-card:not(:hover) .x-button {
+    transition-delay: 0.2s;
 }
 
 .modal-overlay {
@@ -438,7 +468,7 @@ body {
     right: 0;
     background-color: #2a2a2a;
     border-radius: 8px;
-    padding: 2px 2px;
+    padding: 1px 1px;
     min-width: 50px;
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
     opacity: 0;
@@ -475,7 +505,7 @@ body {
 .dropdown-menu button {
     display: block;
     width: 100%;
-    padding: 12px 20px;
+    padding: 11px 20px;
     background: none;
     border: none;
     color: #ffffff;
@@ -509,7 +539,7 @@ body {
 .recent-documents-header {
     padding: 1rem;
     background-color: #000000;
-    border-bottom: 1px solid #46ad69;
+    border-bottom: 1px solid rgb(66, 66, 66);
 }
 
 
@@ -532,8 +562,8 @@ body {
 .tools-link {
     margin-right: 1rem;
     padding: 0.5rem 1rem;
-    background-color: var(--accent-color);
-    color: var(--background-color);
+    background-color: #0d0d0e;
+    color: white;
     text-decoration: none;
     border-radius: 5px;
     font-weight: bold;
@@ -541,6 +571,78 @@ body {
 }
 
 .tools-link:hover {
-    background-color: #3a8f57;
+    background-color: #272729;
     /* Darker shade for hover state */
+}
+
+.project-card {
+    /* ... existing styles ... */
+    position: relative;
+    overflow: visible;
+}
+
+.dropdown-container {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    z-index: 10;
+}
+
+.ellipsis-button {
+    width: 30px;
+    height: 30px;
+    background-color: rgba(70, 173, 105, 0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.3s, opacity 0.3s;
+    opacity: 0;
+}
+
+.project-card:hover .ellipsis-button {
+    opacity: 1;
+}
+
+.ellipsis-button:hover {
+    background-color: rgba(70, 173, 105, 0.3);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+    padding: 5px 0;
+    min-width: 100px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+}
+
+.dropdown-container:hover .dropdown-menu,
+.dropdown-menu:hover {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-menu button {
+    display: block;
+    width: 100%;
+    padding: 8px 15px;
+    background: none;
+    border: none;
+    color: #ffffff;
+    text-align: left;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dropdown-menu button:hover {
+    background-color: #3a8f57;
 }

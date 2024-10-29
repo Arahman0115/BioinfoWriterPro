@@ -5,7 +5,7 @@ import Toolbar from '../components/Toolbar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db, auth } from '../firebase/firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, doc, updateDoc, deleteField } from 'firebase/firestore';
 import { debounce } from 'lodash';
 import Spinner from '../components/Spinner';
 import { saveAs } from 'file-saver';
@@ -172,7 +172,7 @@ const Writer = () => {
     });
   };
 
-  const handleChange = (editorState) => {
+  const handleChange = async (editorState) => {
     const updatedSections = {
       ...sections,
       [activeSection]: { ...sections[activeSection], content: editorState },
@@ -181,69 +181,88 @@ const Writer = () => {
     setIsEditing(true);
     setFeedbackMessage('Editing...');
 
+    // Clear existing timeouts
     if (suggestionTimeoutRef.current) {
       clearTimeout(suggestionTimeoutRef.current);
     }
-
-    suggestionTimeoutRef.current = setTimeout(() => {
-      setIsEditing(false);
-      handleTextCompletion(editorState.getCurrentContent().getPlainText());
-    }, 4000);
-
     if (saveTimeoutRef.current) {
       clearTimeout(saveTimeoutRef.current);
     }
 
-    saveTimeoutRef.current = setTimeout(() => {
-      const contentToSave = Object.entries(updatedSections).reduce((acc, [key, value]) => {
-        acc[key] = {
-          ...value,
-          content: value.content.getCurrentContent().getPlainText()
-        };
-        return acc;
-      }, {});
-      saveContent(user, location.state?.project, contentToSave, sectionOrder, title, articles);
-      setFeedbackMessage('Saving...');
-      // Set a timeout to change the feedback message to "Saved" after a short delay
-      setTimeout(() => {
-        setFeedbackMessage('Saved');
-        // Clear the "Saved" message after 3 seconds
-      }, 4000); // Adjust this delay as needed
+    // Handle text completion suggestion
+    suggestionTimeoutRef.current = setTimeout(async () => {
+      const currentContent = editorState.getCurrentContent().getPlainText();
+      if (currentContent.trim()) {
+        try {
+          const response = await fetch('http://localhost:5000/api/suggest', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ text: currentContent }),
+          });
+          const data = await response.json();
+          setSuggestion(data.suggestion);
+          setPreviousSuggestions(prev => [...prev, data.suggestion]);
+          setIsEditing(false);
+        } catch (error) {
+          console.error('Error getting suggestion:', error);
+          setIsEditing(false);
+        }
+      }
+    }, 2000);
+
+    // Handle saving with proper project ID management
+    saveTimeoutRef.current = setTimeout(async () => {
+      try {
+        const contentToSave = Object.entries(updatedSections).reduce((acc, [key, value]) => {
+          acc[key] = {
+            ...value,
+            content: value.content.getCurrentContent().getPlainText()
+          };
+          return acc;
+        }, {});
+
+        const result = await saveContent(
+          user,
+          location.state?.project,
+          contentToSave,
+          sectionOrder,
+          title,
+          articles
+        );
+
+        // If this is a new document, update the location state without navigation
+        if (result?.isNew) {
+          // Update the location state without triggering a re-render
+          window.history.replaceState(
+            {
+              ...window.history.state,
+              usr: {
+                ...window.history.state.usr,
+                project: {
+                  ...location.state?.project,
+                  id: result.id,
+                  sections: contentToSave,
+                  title: title
+                }
+              }
+            },
+            ''
+          );
+        }
+
+        setFeedbackMessage('Saving...');
+        setTimeout(() => {
+          setFeedbackMessage('Saved');
+        }, 2000);
+      } catch (error) {
+        console.error('Error saving content:', error);
+        setFeedbackMessage('Error saving content');
+      }
     }, 4000);
   };
 
-  const handleTextCompletion = async (prompt) => {
-    if (!prompt.trim()) {
-      setSuggestion('');
-      return;
-    }
-    try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/predict`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Origin': 'http://localhost:5173'  // You might want to make this dynamic too
-        },
-        body: JSON.stringify({ prompt }),
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      if (data.message) {
-        setSuggestion(data.message);
-        setPreviousSuggestions(prevSuggestions => [data.message, ...prevSuggestions.slice(0, 9)]);
-      } else {
-        setSuggestion('');
-        console.error('Error or missing message in response:', data);
-      }
-    } catch (error) {
-      setSuggestion('');
-      console.error('Error fetching prediction:', error);
-      // Optionally, show a user-friendly error message
-      alert('Failed to get suggestion. Please try again later.');
-    }
-  };
   const handleKeyCommand = (command, editorState) => {
     if (command === 'insert-suggestion' && suggestion) {
       const newState = Modifier.insertText(
@@ -276,6 +295,7 @@ const Writer = () => {
   const handleTitleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleTitleBlur();
+      saveContent(user, location.state?.project, updatedSections, updatedSectionOrder, title, articles);
     }
   };
 
@@ -350,7 +370,7 @@ const Writer = () => {
     }
   };
   const handleSave = () => {
-    saveContent(user, location.state?.project, contentToSave, sectionOrder, title, articles);
+    saveContent(user, location.state?.project, updatedSections, updatedSectionOrder, title, articles);
 
   };
 
@@ -379,6 +399,61 @@ const Writer = () => {
     setShowSuggestionHistory(false);
   };
 
+  const addSectionsFromTemplate = () => {
+    const templateContent = sections['Template'].content.getCurrentContent().getPlainText();
+
+    // Extract the introduction
+    const introRegex = /^(.+?):\n([\s\S]+?)(?=\n\n|$)/;
+    const introMatch = templateContent.match(introRegex);
+    if (introMatch) {
+      const introTitle = introMatch[1].trim();
+      const introContent = introMatch[2].trim();
+      handleAddSection(introTitle, introContent);
+    }
+
+    // Extract main sections
+    const sectionRegex = /\n\n(.+?):\n([\s\S]+?)(?=\n\n(?:.+?:)|$)/g;
+    let sectionMatch;
+
+    while ((sectionMatch = sectionRegex.exec(templateContent)) !== null) {
+      const sectionTitle = sectionMatch[1].trim();
+      const sectionContent = sectionMatch[2].trim();
+
+      // Format the content with numbered points
+      const formattedContent = sectionContent.replace(/(\d+\.)\s+(.+)/g, '$1 $2\n');
+
+      handleAddSection(sectionTitle, formattedContent);
+    }
+  };
+
+  const handleDeleteSection = (sectionName) => {
+    if (sectionName === 'Template') {
+      // Optionally, show an alert or message that the Template section can't be deleted
+      return;
+    }
+
+    // Update local state
+    setSections(prevSections => {
+      const newSections = { ...prevSections };
+      delete newSections[sectionName];
+      return newSections;
+    });
+
+    setSectionOrder(prevOrder => prevOrder.filter(name => name !== sectionName));
+
+    if (activeSection === sectionName) {
+      setActiveSection(sectionOrder[0] || 'Template');
+    }
+
+    // Trigger save content to update Firebase
+    const updatedSections = { ...sections };
+    delete updatedSections[sectionName];
+    const updatedSectionOrder = sectionOrder.filter(name => name !== sectionName);
+    saveContent(user, location.state?.project, updatedSections, updatedSectionOrder, title, articles);
+
+    console.log(`Section "${sectionName}" deleted successfully`);
+  };
+
   useEffect(() => {
     return () => {
       // Clear all timeouts
@@ -396,6 +471,34 @@ const Writer = () => {
     };
   }, []);
 
+  // Add a useEffect to handle project updates
+  useEffect(() => {
+    const project = location.state?.project;
+    if (project?.id && project?.sections) {
+      // Only update if we have actual content
+      setSections(prevSections => {
+        const newSections = { ...prevSections };
+        Object.entries(project.sections).forEach(([key, value]) => {
+          if (value.content) {
+            newSections[key] = {
+              ...value,
+              content: EditorState.createWithContent(
+                ContentState.createFromText(value.content),
+                decorator
+              )
+            };
+          }
+        });
+        return newSections;
+      });
+
+      if (project.title) {
+        setTitle(project.title);
+        setIsTitleSet(true);
+      }
+    }
+  }, [location.state?.project?.id]);
+
   return (
     <div className="writer-container">
       <Toolbar
@@ -408,6 +511,9 @@ const Writer = () => {
       />
       <div className='writer-main'>
         <div className="outline-box">
+          <div className='feedback-container'>
+            {feedbackMessage && <div className="feedback-message">{feedbackMessage}</div>}
+          </div>
           <h2>Outline</h2>
           <DragDropContext onDragEnd={onDragEnd}>
             <Droppable droppableId="outline">
@@ -420,9 +526,20 @@ const Writer = () => {
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          onClick={() => switchSection(name)}
+                          className="section-item"
                         >
-                          {name}
+                          <span onClick={() => switchSection(name)}>{name}</span>
+                          {name !== 'Template' && (
+                            <button
+                              className="delete-section-btn"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteSection(name);
+                              }}
+                            >
+                              ×
+                            </button>
+                          )}
                         </li>
                       )}
                     </Draggable>
@@ -441,12 +558,13 @@ const Writer = () => {
             />
             <button onClick={() => handleAddSection(newSection)}>Add</button>
           </div>
+          <button className="add-from-template" onClick={addSectionsFromTemplate}>
+            Add Sections from Template
+          </button>
         </div>
 
         <div className="writer">
-          <div className='feedback-container'>
-            {feedbackMessage && <div className="feedback-message">{feedbackMessage}</div>}
-          </div>
+
           <div className="title-section">
             {isTitleEditing ? (
               <input

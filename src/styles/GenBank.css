@@ -3,7 +3,7 @@
 body {
     font-family: 'Arial', sans-serif;
     background-color: #000000;
-    color: #94a1b2;
+    color: #ffffff;
     line-height: 1.6;
     margin: 0;
     padding: 0;
@@ -16,7 +16,7 @@ body {
     margin: 0 auto;
     padding: 20px;
     background-color: #000000;
-    color: #94a1b2;
+    color: #ffffff;
     font-family: 'Arial', sans-serif;
     overflow-y: auto;
 }
@@ -25,12 +25,16 @@ body {
     padding: 12px 20px;
     max-width: 4vw;
     border-radius: 4px;
-    border: none;
-    background-color: #04ff79;
-    color: #fff;
+    border: 1px solid #ffffff;
+    background-color: #000000;
+    color: #ffffff;
     cursor: pointer;
     transition: background-color 0.3s ease;
     font-size: 1rem;
+}
+
+.genbank-home-button:hover {
+    background-color: #333333;
 }
 
 .genbank-header {
@@ -40,7 +44,7 @@ body {
 
 .genbank-header h1 {
     text-align: center;
-    color: #46ad69;
+    color: #ffffff;
     margin-bottom: 20px;
     font-size: 3.5rem;
     text-wrap: wrap;
@@ -56,16 +60,15 @@ body {
 .genbank-input {
     flex-grow: 1;
     padding: 10px;
-    border: none;
-    border-bottom: 2px solid transparent;
-    background-color: #2e3039;
-    color: #fffffe;
-    transition: border-bottom-color 0.3s ease;
+    border: 1px solid #ffffff;
+    background-color: #000000;
+    color: #ffffff;
+    transition: border-color 0.3s ease;
 }
 
 .genbank-input:focus {
     outline: none;
-    border-bottom-color: #46ad69;
+    border-color: #46ad69;
 }
 
 /* Optional: Add a label for the input field */
@@ -79,7 +82,7 @@ body {
     left: 10px;
     top: 50%;
     transform: translateY(-50%);
-    color: #94a1b2;
+    color: #ffffff;
     transition: all 0.3s ease;
     pointer-events: none;
 }
@@ -94,25 +97,27 @@ body {
 
 .genbank-button {
     padding: 10px 20px;
-    border: none;
+    border: 1px solid #ffffff;
     border-radius: 4px;
     background-color: #46ad69;
-    color: #fffffe;
+    color: #ffffff;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .genbank-button:hover {
-    background-color: #13602d;
+    background-color: #276f3f;
 }
 
 .genbank-button:disabled {
-    background-color: #94a1b2;
+    background-color: #276f3f;
+    border-color: #666666;
     cursor: not-allowed;
+    opacity: 0.7;
 }
 
 .error-message {
-    color: #ff6b6b;
+    color: #ff0000;
     margin-bottom: 20px;
 }
 
@@ -126,22 +131,24 @@ body {
 }
 
 .result-item {
-    background-color: #2e3039;
+    background-color: #000000;
     margin-bottom: 10px;
     padding: 15px;
     border-radius: 4px;
+    border: 1px solid #ffffff;
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
 .result-text h3 {
-    color: #fffffe;
+    color: #ffffff;
     margin: 0 0 5px 0;
 }
 
 .result-text p {
     margin: 0;
+    color: #ffffff;
 }
 
 .result-buttons {
@@ -158,15 +165,20 @@ body {
 .pagination-button1 {
     padding: 5px 10px;
     margin: 0 5px;
-    border: none;
+    border: 1px solid #ffffff;
     border-radius: 4px;
-    background-color: #2e3039;
-    color: #fffffe;
+    background-color: #46ad69;
+    color: #ffffff;
     cursor: pointer;
+}
+
+.pagination-button1:hover {
+    background-color: #276f3f;
 }
 
 .pagination-button1.active {
     background-color: #46ad69;
+    border-color: #46ad69;
 }
 
 @media (max-width: 600px) {

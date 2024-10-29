@@ -57,7 +57,7 @@ const Summarize = () => {
         setIsLoading(true);
         setError('');
         try {
-            const response = await axios.post('http://localhost:3001/api/summarize', { content: articleContent });
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/summarize`, { content: articleContent });
             setSummary(response.data.summary);
         } catch (error) {
             console.error('Error summarizing article:', error);
@@ -68,7 +68,7 @@ const Summarize = () => {
 
     return (
         <div className="summarize-container">
-            <button className="back-button" onClick={() => navigate('/tools')}>
+            <button className="summarize-back-button" onClick={() => navigate('/homepage')}>
                 <ChevronLeft size={20} />
             </button>
             <h1>Summarize Article</h1>
@@ -77,12 +77,15 @@ const Summarize = () => {
                     <h2>Projects</h2>
                     <ul>
                         {projects.map((project) => (
-                            <li key={project.id}>
+                            <li key={project.id} className={selectedProject?.id === project.id ? 'selected' : ''}>
                                 <span onClick={() => handleProjectClick(project)}>{project.title}</span>
                                 {selectedProject && selectedProject.id === project.id && (
                                     <ul>
                                         {project.articles.map((article) => (
-                                            <li key={article.id} className="article-item">
+                                            <li
+                                                key={article.id}
+                                                className={`article-item ${selectedArticle?.id === article.id ? 'selected' : ''}`}
+                                            >
                                                 <span onClick={() => handleArticleClick(article)}>
                                                     {article.title}
                                                 </span>

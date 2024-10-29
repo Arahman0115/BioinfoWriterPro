@@ -23,6 +23,7 @@ import Protein from './pages/Protein';
 import FigureExplanation from './pages/FigureExplanation';
 import SemanticSearch from './pages/SemanticSearch';
 import Summarize from './pages/Summarize';
+import Pricing from './pages/Pricing';
 const pageVariants = {
   initial: {
     opacity: 0, // Start fully transparent
@@ -78,7 +79,7 @@ const App = () => {
           } />
           <Route path="/writer" element={<AnimatedRoute><WriterPage /></AnimatedRoute>} />
           <Route path="/settings" element={<AnimatedRoute><SettingsPage /></AnimatedRoute>} />
-
+          <Route path="/pricing" element={<AnimatedRoute><Pricing /></AnimatedRoute>} />
           {/* Research and Search Routes */}
           <Route path="/research" element={<AnimatedRoute><Research /></AnimatedRoute>} />
           <Route path="/genbank-search" element={<AnimatedRoute><GenBank /></AnimatedRoute>} />

@@ -18,7 +18,7 @@ const DemoPage = () => {
     return (
         <div className="demo-container">
             <div className="demo-header-container">
-                <button className='homebutton' onClick={goToLandingPage}>
+                <button className='demo-homebutton' onClick={goToLandingPage}>
                     <ChevronLeft size={20} />
                 </button>
                 <h1 className="demo-header">WriterPro Documentation</h1>

@@ -16,7 +16,7 @@ const Mafft = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post('/api/mafft', { sequences });
+            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/mafft`, { sequences });
             setResult(response.data.alignedSequences);
         } catch (err) {
             setError('Failed to run sequence alignment: ' + err.message);

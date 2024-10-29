@@ -7,24 +7,38 @@ export const saveContent = debounce(async (user, project, updatedSections, secti
     const currentProject = {
         title,
         sections: updatedSections,
-        sectionOrder, // Include the current sectionOrder
+        sectionOrder,
         lastEdited: Date.now(),
         articles
     };
 
     if (user) {
         try {
-            // If a project ID exists, update the existing document
-            if (project?.id) {
-                const docRef = doc(db, `users/${user.uid}/projects`, project.id);
-                await setDoc(docRef, currentProject, { merge: true });
-            } else {
-                // If no project ID, create a new document
+            let projectId = project?.id;
+
+            // If no project ID exists, create a new document and store its ID
+            if (!projectId) {
                 const newDocRef = await addDoc(collection(db, `users/${user.uid}/projects`), currentProject);
-                return newDocRef.id; // Return new project ID
+                projectId = newDocRef.id;
+
+                // Return both the ID and a flag indicating this is a new document
+                return {
+                    id: projectId,
+                    isNew: true
+                };
             }
+
+            // Update existing document
+            const docRef = doc(db, `users/${user.uid}/projects`, projectId);
+            await setDoc(docRef, currentProject, { merge: true });
+
+            return {
+                id: projectId,
+                isNew: false
+            };
         } catch (e) {
             console.error("Error saving document: ", e);
+            throw e;
         }
     } else {
         console.log('User is not authenticated');
