@@ -22,18 +22,21 @@
     padding: 1rem;
     background-color: #000000;
     overflow: hidden;
+    scrollbar-width: thin;
+    scrollbar-color: black transparent;
 
 }
 
 
 
 .writing-area-container::-webkit-scrollbar {
-    width: 10px;
+    width: thin;
     /* Width of the entire scrollbar */
 }
 
 .writing-area-container::-webkit-scrollbar-track {
-    background: var(--surface-color);
+    background-color: transparent;
+    width:thin;
     /* Color of the tracking area */
 }
 
@@ -59,20 +62,24 @@
     display: flex;
     flex: 1;
     gap: 1rem;
-
-    height: calc(100vh - var(--toolbar-height) - 5rem);
+    height: calc(100vh - var(--toolbar-height) - 8rem);
+    padding: 1rem;
     overflow: hidden;
-    background-color: #000000;
-
+    margin-top: calc(var(--toolbar-height) + 1rem);
+    align-items: flex-start;
 }
 
 .writer {
-    flex: 1;
-    max-height: calc(100vh - var(--toolbar-height) - 1rem);
-
-    align-items: center;
-    justify-content: center;
-    margin-top: 3rem;
+    flex: 0 0 50%;
+    min-width: 0;
+    margin: 0 2rem;
+    height: calc(100vh - var(--toolbar-height) - 3rem);
+    overflow: auto;
+    background-color: var(--background-color);
+    border: 1px solid #fffffe;
+    border-radius: 10px;
+    position: sticky;
+    top: calc(var(--toolbar-height) + 1rem);
 }
 
 .title-input {
@@ -85,7 +92,7 @@
     ;
     border-radius: 10px;
     width: 90%;
-    background-color: #000000;
+    background-color: transparent;
     color: var(--text-color);
     align-self: center;
     text-align: center;
@@ -96,7 +103,7 @@
 }
 
 .title-section {
-    background-color: #000000;
+    background-color: transparent;
     border-radius: 5px;
     width: 100%;
     color: #fffffe;
@@ -121,6 +128,7 @@
     justify-content: center;
     /* Center the title */
     text-align: center;
+    background-color: transparent;
     /* Ensures the text inside is centered */
     width: 100%;
     /* Take full width to properly center */
@@ -145,48 +153,30 @@
 }
 
 .suggestion-overlay {
-    flex: 0 0 20%;
-    height: auto;
-    max-height: calc(100vh - var(--toolbar-height) - 3rem);
+    flex: 0 0 320px;
+    width: 320px;
+    height: calc(100vh - var(--toolbar-height) - 8rem);
+    background-color: var(--background-color);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    overflow-y: auto;
+    overflow-x: hidden;
     position: sticky;
     top: calc(var(--toolbar-height) + 1rem);
-    right: 0;
-    overflow-y: none;
-
-    margin-left: 0;
-    border: 1px solid #fffffe;
-    padding: 10px;
-    border-radius: 5px;
-    background-color: #000000;
-    backdrop-filter: blur(5px);
-    box-shadow: 0 4px 6px rgba(1, 87, 13, 0.1);
-    position: relative;
+    margin-left: auto;
 }
 
 .sugtitle {
-    font-size: 24px;
+    font-size: 20px;
     font-weight: bold;
     color: var(--heading-color);
-    font-family: 'Arial', sans-serif;
     text-align: center;
-    margin-bottom: 20px;
-    position: relative;
-
-    letter-spacing: 1px;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #46ad69;
 }
 
-.sugtitle::after {
-    content: '';
-    display: block;
-    width: 50px;
-    height: 3px;
-    background-color: #46ad69;
-    position: absolute;
-    bottom: -10px;
-    left: 50%;
-    transform: translateX(-50%);
-    border-radius: 1px;
-}
+
 
 
 
@@ -252,21 +242,7 @@
     text-align: center;
 }
 
-.outline-box {
-    flex: 0 0 20%;
-    /* Adjust width as needed */
-    height: auto;
-    max-height: calc(100vh - var(--toolbar-height) - 3rem);
-    margin-bottom: 0;
-    margin-right: 0;
-    position: sticky;
-    top: calc(var(--toolbar-height) + 1rem);
-    overflow-y: auto;
-    border: 1px solid #fffffe;
-    border-radius: 5px;
-    padding: 10px;
-    background-color: #000000;
-}
+
 
 .outline-box:hover,
 .suggestion-overlay:hover,
@@ -275,20 +251,20 @@
 }
 
 .styled-block {
-    position: relative;
+    display: inline-block;
     font-size: 13px;
-    /* Adjust as needed */
     line-height: 20px;
-    /* Adjust as needed */
-    pointer-events: none;
-    z-index: 1;
     background-color: #46ad69;
-    padding: 5px;
+    padding: 2px 5px;
     border-radius: 5px;
     color: white;
+    margin: 0 2px;
 }
 
-
+.ql-editor .styled-block {
+    display: inline-block;
+    pointer-events: none;
+}
 
 .outline-box h2 {
     font-size: 21px;
@@ -450,11 +426,11 @@
 }
 
 .outline-box::-webkit-scrollbar-track {
-    background: var(--surface-color);
+    background-color: transparent;
 }
 
 .outline-box::-webkit-scrollbar-thumb {
-    background-color: #46ad69;
+    background-color: #fffffe;
     border-radius: 10px;
 }
 
@@ -464,15 +440,15 @@
 
 .outline-box {
     scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) var(--surface-color);
+    scrollbar-color: black transparent;
 }
 
 .spinnerbox {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100px;
-    margin-top: 20px;
+    min-height: 100px;
+    margin-top: 1rem;
 }
 
 .title-section {
@@ -480,6 +456,7 @@
     gap: 10px;
     margin-bottom: 20px;
     color: #fffffe;
+    background-color: transparent;
 }
 
 .title-submit {
@@ -608,38 +585,65 @@
     width: 51vw;
     height: 80vh;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
     margin-left: 3vw;
-
-    /* Changed from center to flex-start */
     border: 1px solid #fffffe;
     border-radius: 10px;
     padding: 20px;
     align-self: center;
-    overflow-y: auto;
     background-color: #000000;
-    /* Add this to enable scrolling if content exceeds container height */
 }
 
-/* Add or modify this class to style the Draft.js editor */
-.DraftEditor-root {
+/* Add these styles for Quill editor */
+.writing-area-container .quill {
+    height: calc(100% - 42px); /* 42px is the default Quill toolbar height */
+    display: flex;
+    flex-direction: column;
+}
+
+.writing-area-container .ql-container {
     flex: 1;
-    padding: 5px;
-    /* Add padding around the text */
-    font-size: 12px;
-    /* Adjust font size as needed */
-    line-height: 1.6;
-    /* Adjust line height for better readability */
+    overflow-y: auto;
+    font-size: 16px;
     color: var(--text-color);
-    /* Ensure text color contrasts with background */
 }
 
-/* Style the editor content */
-.DraftEditor-editorContainer {
+.writing-area-container .ql-toolbar {
+    background-color: #000000;
+    border-color: #fffffe;
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.writing-area-container .ql-toolbar button {
+    color: var(--text-color);
+}
+
+.writing-area-container .ql-toolbar button:hover {
+    color: #46ad69;
+}
+
+.writing-area-container .ql-editor {
     height: 100%;
+    background-color: #000000;
+    color: var(--text-color);
 }
 
-/* Ensure the text doesn't touch the edges on smaller screens */
+/* Update existing styles */
+.writing-area-container {
+    margin-bottom: 20px;
+    width: 51vw;
+    height: 80vh;
+    display: flex;
+    flex-direction: column;
+    margin-left: 3vw;
+    border: 1px solid #fffffe;
+    border-radius: 10px;
+    padding: 20px;
+    align-self: center;
+    background-color: #000000;
+}
+
 @media (max-width: 768px) {
     .DraftEditor-root {
         padding: 15px;
@@ -761,6 +765,7 @@
         font-size: 1rem;
         margin-bottom: 0.3rem;
         padding: 0.3rem;
+        background-color: transparent;
     }
 
     .writing-area-container {
@@ -792,27 +797,7 @@
 
 /* Ensure larger screens maintain normal layout */
 
-.history-button {
-    position: absolute;
-    bottom: 10px;
-    display: flex;
 
-    align-items: center;
-    align-self: center;
-    justify-content: center;
-    background-color: black;
-    color: #fffffe;
-    border: 1px solid #fffffe;
-    padding: 5px 10px;
-    cursor: pointer;
-    border-radius: 5px;
-    font-size: 0.8rem;
-    transition: background-color 0.3s ease;
-}
-
-.history-button:hover {
-    background-color: rgb(52, 48, 48);
-}
 
 .suggestion-history {
     list-style-type: none;
@@ -854,12 +839,6 @@
     background-color: rgb(34, 31, 31);
 }
 
-.history-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    /* ... existing styles ... */
-}
 
 .writing-area-container {
     opacity: 1;
@@ -874,6 +853,7 @@
 .project-title.untitled {
     color: #fffffe;
     animation: pulse 2s infinite;
+    background-color: transparent;
 }
 
 @keyframes pulse {
@@ -980,4 +960,550 @@
     padding: 20px;
     border: 1px solid #ffffff;
     border-radius: 4px;
+}
+
+.outline-section {
+    margin: 8px 0;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-secondary);
+    transition: all 0.2s ease;
+}
+
+.outline-section.active {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+.outline-section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: grab;
+    background: var(--bg-primary);
+    border-radius: 4px 4px 0 0;
+}
+
+.section-title {
+    font-weight: 500;
+    flex-grow: 1;
+
+}
+
+.expand-button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0 4px;
+    color: var(--text-secondary);
+}
+
+.outline-section-details {
+    padding: 12px;
+    border-top: 1px solid var(--border-color);
+}
+
+.section-objective {
+    margin-bottom: 12px;
+}
+
+.section-objective textarea {
+    width: 100%;
+    min-height: 60px;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    resize: vertical;
+}
+
+.objective-display {
+    padding: 8px;
+    min-height: 40px;
+    border: 1px dashed var(--border-color);
+    border-radius: 4px;
+    cursor: text;
+    color: var(--text-secondary);
+}
+
+.key-points {
+    margin-top: 12px;
+}
+
+.key-points h4 {
+    margin-bottom: 8px;
+    color: var(--text-primary);
+}
+
+.key-points ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 8px 0;
+}
+
+.key-points li {
+    display: flex;
+    align-items: center;
+    padding: 4px 8px;
+    margin: 4px 0;
+    background: var(--bg-primary);
+    border-radius: 4px;
+    gap: 8px;
+}
+
+.remove-point {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 0 4px;
+    margin-left: auto;
+}
+
+.remove-point:hover {
+    color: var(--error-color);
+}
+
+.key-point-input {
+    width: 100%;
+    padding: 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.page-shadow {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.page-shadow-both {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 -1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.prose {
+    font-family: 'Arial', sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+    color: #333;
+}
+
+.prose:focus {
+    outline: none;
+}
+
+/* Adjust the writer container to accommodate the new layout */
+.writer {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    flex: 1;
+    overflow: hidden;
+}
+
+.title-section {
+    padding: 1rem;
+    background: transparent;
+    z-index: 10;
+}
+
+/* GoogleDocsWriter specific styles */
+.flex-1 {
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+}
+
+.relative {
+    position: relative;
+}
+
+.bg-white-100 {
+    background-color: #000000; /* Match your dark theme */
+}
+
+/* Paper styles */
+.mx-auto {
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.bg-white {
+    background-color: #242629; /* Match your dark theme */
+}
+
+/* Editor container */
+.prose {
+    color: #fffffe; /* Match your light text color */
+    font-family: 'Arial', sans-serif;
+    font-size: 11pt;
+    line-height: 1.5;
+}
+
+.prose .DraftEditor-root {
+    min-height: 100%;
+}
+
+/* Character counter toolbar */
+.fixed.bottom-8 {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #242629;
+    color: #fffffe;
+    border: 1px solid #46ad69;
+    z-index: 1000;
+}
+
+/* Section indicator */
+.absolute.top-4 {
+    color: #94a1b2;
+    font-size: 0.875rem;
+}
+
+/* Remove conflicting styles */
+.writing-area-container {
+    display: none; /* Hide the old container */
+}
+
+/* Update media queries */
+@media (max-width: 1024px) {
+    .writer-main {
+        flex-direction: column;
+    }
+
+    .writer {
+        min-height: 50vh;
+    }
+}
+
+/* Add these utility classes that were missing */
+.p-8 {
+    padding: 2rem;
+}
+
+.h-full {
+    height: 100%;
+}
+
+.overflow-auto {
+    overflow: auto;
+}
+
+.max-w-none {
+    max-width: none;
+}
+
+.space-x-4 > * + * {
+    margin-left: 1rem;
+}
+
+.items-center {
+    align-items: center;
+}
+
+.rounded-lg {
+    border-radius: 0.5rem;
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+.py-2 {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-gray-400 {
+    color: #94a1b2;
+}
+
+.text-gray-600 {
+    color: #fffffe;
+}
+
+/* Update the writer-main layout for three columns */
+.writer-main {
+    display: flex;
+    flex: 1;
+    gap: 1rem;
+    height: calc(100vh - var(--toolbar-height));
+    padding: 1rem;
+    overflow: hidden;
+}
+
+/* Left column - Outline */
+.outline-box {
+    flex: 0 0 320px;
+    height: calc(100vh - var(--toolbar-height) - 8rem);
+    background-color: var(--background-color);
+    border: 1px solid #fffffe;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    overflow-y: auto;
+    position: sticky;
+    top: calc(var(--toolbar-height) + 1rem);
+}
+
+/* Middle column - Writer (taller) */
+.writer {
+    flex: 0 0 50%;
+    min-width: 0;
+    margin: 0 1rem;
+    height: calc(100vh - var(--toolbar-height) - 4rem);
+    overflow: auto;
+    background-color: var(--background-color);
+    border: 1px solid #fffffe;
+    border-radius: 10px;
+    position: sticky;
+    top: calc(var(--toolbar-height) + 1rem);
+}
+
+/* Right column - Suggestion overlay */
+.suggestion-overlay {
+    flex: 0 0 320px;
+    width: 320px;
+    height: calc(100vh - var(--toolbar-height) - 8rem);
+    background-color: var(--background-color);
+    border: 1px solid #fffffe;
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    overflow-y: auto;
+    position: sticky;
+    top: calc(var(--toolbar-height) + 1rem);
+    margin-left: auto;
+}
+
+/* Suggestion overlay content styles */
+.sugtitle {
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--heading-color);
+    text-align: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #46ad69;
+}
+
+.history-button {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid #46ad69;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.history-button:hover {
+    background-color: #46ad69;
+    color: var(--background-color);
+}
+
+.suggestion {
+    display: block;
+    padding: 1rem;
+    background-color: var(--surface-color);
+    border: 1px solid #fffffe;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.suggestion-history {
+    margin-top: 1rem;
+}
+
+
+
+.insert-suggestion-button {
+    width: 100%;
+    padding: 0.5rem;
+    margin-top: 0.5rem;
+    background-color: #46ad69;
+    color: var(--background-color);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.insert-suggestion-button:hover {
+    background-color: var(--accent-color);
+}
+
+/* Update writer to accommodate fixed-width suggestion overlay */
+.writer {
+    flex: 1;
+    min-width: 0;
+    margin: 0 1rem;
+}
+
+/* Ensure proper scrolling for suggestion content */
+.suggestion-overlay::-webkit-scrollbar {
+    width: 8px;
+}
+
+.suggestion-overlay::-webkit-scrollbar-track {
+    background: var(--surface-color);
+}
+
+.suggestion-overlay::-webkit-scrollbar-thumb {
+    background-color: #46ad69;
+    border-radius: 4px;
+}
+
+.suggestion-overlay::-webkit-scrollbar-thumb:hover {
+    background-color: var(--accent-color);
+}
+
+/* Spinner box positioning */
+.spinnerbox {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+    margin-top: 1rem;
+}
+
+/* GoogleDocsWriter specific styles - Remove Tailwind */
+.google-docs-container {
+    flex: 1;
+    position: relative;
+    background-color: var(--background-color);
+    padding: 2rem;
+    overflow: auto;
+    height: 100%;
+}
+
+.paper {
+    margin: 0 auto;
+    position: relative;
+    background-color: var(--surface-color);
+    width: 816px;
+    min-height: 1056px;
+    padding: 72px;
+}
+
+.paper-shadow {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.paper-shadow-both {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 -1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.section-indicator {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    color: var(--text-color);
+    font-size: 0.875rem;
+}
+
+.character-counter {
+    position: fixed;
+    bottom: 1rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--surface-color);
+    color: var(--text-color);
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    z-index: 50;
+    display: flex;
+    align-items: center;
+}
+
+/* Media Queries for responsiveness */
+@media screen and (max-width: 1600px) {
+    .outline-box,
+    .suggestion-overlay {
+        flex: 0 0 280px;
+        width: 280px;
+    }
+
+    .writer {
+        flex: 0 0 45%;
+    }
+}
+
+@media screen and (max-width: 1366px) {
+    .outline-box,
+    .suggestion-overlay {
+        flex: 0 0 250px;
+        width: 250px;
+    }
+
+    .writer {
+        flex: 0 0 40%;
+    }
+}
+
+@media screen and (max-width: 1024px) {
+    .writer-main {
+        flex-direction: column;
+        height: auto;
+        overflow: visible;
+    }
+
+    .outline-box,
+    .writer,
+    .suggestion-overlay {
+        flex: 1;
+        width: 100%;
+        height: auto;
+        min-height: 300px;
+        margin: 1rem 0;
+    }
+
+    .suggestion-overlay {
+        position: relative;
+        top: 0;
+    }
+
+    .paper {
+        width: 100%;
+        max-width: 816px;
+    }
+}
+
+/* Optional: Handle very small screens */
+@media screen and (max-width: 768px) {
+    .writer-main {
+        padding: 0.5rem;
+    }
+
+    .outline-box,
+    .writer,
+    .suggestion-overlay {
+        min-height: 200px;
+        margin: 0.5rem 0;
+    }
+
+    .title-input,
+    .project-title {
+        font-size: 18px;
+    }
+
+    .character-counter {
+        font-size: 12px;
+        padding: 0.25rem 0.5rem;
+    }
 }

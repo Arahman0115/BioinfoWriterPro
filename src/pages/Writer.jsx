@@ -14,6 +14,7 @@ import { saveContent } from '../utils/contentManager';
 import { Editor, EditorState, ContentState, Modifier, CompositeDecorator, getDefaultKeyBinding } from 'draft-js';
 import 'draft-js/dist/Draft.css';
 import deoxy from '../assets/deoxy.png';
+import GoogleDocsWriter from './GoogleDocsWriter';
 
 const formatCitation = (article) => {
   // Basic MLA format: Author(s). "Title of Source." Title of Container, Other contributors, Version, Number, Publisher, Publication Date, Location.
@@ -330,20 +331,26 @@ const Writer = () => {
     }
   };
 
-  const handleAddSection = (sectionName, content = '') => {
-    if (sectionName && !sections[sectionName]) {
-      setSections(prevSections => ({
+  const handleAddSection = (sectionTitle, content = null) => {
+    if (!sectionTitle) return;
+
+    // Create new section with content if provided
+    const newSectionContent = content instanceof EditorState 
+        ? content  // Use provided EditorState directly
+        : EditorState.createEmpty(decorator);  // Create empty EditorState if none provided
+
+    setSections(prevSections => ({
         ...prevSections,
-        [sectionName]: {
-          id: `section-${Object.keys(prevSections).length + 1}`,
-          content: EditorState.createWithContent(ContentState.createFromText(content))
+        [sectionTitle]: {
+            id: `section-${Date.now()}`,
+            content: newSectionContent
         }
-      }));
-      setSectionOrder(prevOrder => [...prevOrder, sectionName]);
-      setActiveSection(sectionName);
-      setNewSection('');
-    }
-  };
+    }));
+
+    setSectionOrder(prevOrder => [...prevOrder, sectionTitle]);
+    setNewSection(''); // Clear the input field
+    setActiveSection(sectionTitle); // Switch to the newly created section
+};
 
   const onDragEnd = (result) => {
     if (!result.destination) return;
@@ -423,30 +430,63 @@ const Writer = () => {
 
   const addSectionsFromTemplate = () => {
     const templateContent = sections['Template'].content.getCurrentContent().getPlainText();
-
-    // Extract the introduction
-    const introRegex = /^(.+?):\n([\s\S]+?)(?=\n\n|$)/;
-    const introMatch = templateContent.match(introRegex);
-    if (introMatch) {
-      const introTitle = introMatch[1].trim();
-      const introContent = introMatch[2].trim();
-      handleAddSection(introTitle, introContent);
+    
+    // Regex to match main sections with Roman numerals and their content
+    const mainSectionRegex = /([IVX]+)\.\s+([^\r\n]+)(?:\r?\n|\r)+((?:(?:[A-Z]\.\s+)?[^IVX\r\n][^\r\n]*\r?\n?)*)/g;
+    
+    // Regex to match subsections starting with letters (A., B., etc.)
+    const subSectionRegex = /([A-Z])\.\s+([^\r\n]+)(?:\r?\n|\r)+((?:[^A-Z\r\n][^\r\n]*\r?\n?)*)/g;
+    
+    let match;
+    while ((match = mainSectionRegex.exec(templateContent)) !== null) {
+        const sectionNumber = match[1];
+        const sectionTitle = match[2].trim();
+        const sectionContent = match[3];
+        
+        // Check if the section has letter-based subsections
+        const hasSubsections = sectionContent.match(/[A-Z]\.\s+/);
+        
+        if (hasSubsections) {
+            // Process content with subsections
+            let formattedContent = '';
+            let subMatch;
+            
+            while ((subMatch = subSectionRegex.exec(sectionContent)) !== null) {
+                const subSectionLetter = subMatch[1];
+                const subSectionTitle = subMatch[2];
+                const subSectionContent = subMatch[3];
+                
+                // Add subsection title
+                formattedContent += `• ${subSectionTitle}\n`;
+                
+                // Process bullet points within subsection
+                const bulletPoints = subSectionContent
+                    .split('\n')
+                    .filter(line => line.trim())
+                    .map(line => `  • ${line.trim()}`)
+                    .join('\n');
+                
+                formattedContent += bulletPoints + '\n';
+            }
+            
+            const contentState = ContentState.createFromText(formattedContent.trim());
+            const editorState = EditorState.createWithContent(contentState, decorator);
+            handleAddSection(sectionTitle, editorState);
+            
+        } else {
+            // Process content without subsections (simple bullet points)
+            const formattedContent = sectionContent
+                .split('\n')
+                .filter(line => line.trim())
+                .map(line => `• ${line.trim().replace(/^-\s*/, '')}`)
+                .join('\n');
+            
+            const contentState = ContentState.createFromText(formattedContent.trim());
+            const editorState = EditorState.createWithContent(contentState, decorator);
+            handleAddSection(sectionTitle, editorState);
+        }
     }
-
-    // Extract main sections
-    const sectionRegex = /\n\n(.+?):\n([\s\S]+?)(?=\n\n(?:.+?:)|$)/g;
-    let sectionMatch;
-
-    while ((sectionMatch = sectionRegex.exec(templateContent)) !== null) {
-      const sectionTitle = sectionMatch[1].trim();
-      const sectionContent = sectionMatch[2].trim();
-
-      // Format the content with numbered points
-      const formattedContent = sectionContent.replace(/(\d+\.)\s+(.+)/g, '$1 $2\n');
-
-      handleAddSection(sectionTitle, formattedContent);
-    }
-  };
+};
 
   const handleDeleteSection = (sectionName) => {
     if (sectionName === 'Template') {
@@ -608,77 +648,74 @@ const Writer = () => {
               </h2>
             )}
           </div>
-          <div className={`writing-area-container ${!isTitleSet ? 'disabled' : ''}`}>
-            {sections[activeSection] ? (
-              <Editor
-                editorState={sections[activeSection].content}
-                onChange={handleChange}
-                handleKeyCommand={handleKeyCommand}
-                keyBindingFn={keyBindingFn}
-              />
-            ) : (
-              <p>No content available for this section.</p>
-            )}
-          </div>
-          <div className="character-count">
-            Character Count: {sections[activeSection].content.getCurrentContent().getPlainText('').length}
-          </div>
-        </div>
+          {sections[activeSection] ? (
+            <GoogleDocsWriter
+              editorState={sections[activeSection].content}
+              onChange={handleChange}
+              handleKeyCommand={handleKeyCommand}
+              keyBindingFn={keyBindingFn}
+              title={title}
+              activeSection={activeSection}
+            />
+          ) : (
+            <p>No content available for this section.</p>
+          )}
 
+     
+        </div>
         <div className="suggestion-overlay">
-          <div className='sugtitle'>{showSuggestionHistory ? 'History' : 'WriterPro Assistant'}</div>
-          <button className="history-button" onClick={toggleSuggestionHistory}>
-            {showSuggestionHistory ? 'Current' : 'History'}
-          </button>
-          {!isEditing && !showSuggestionHistory && suggestion && (
-            <span className="suggestion">{suggestion}</span>
-          )}
-          {!isEditing && showSuggestionHistory && (
-            <div className="suggestion-history">
-              <ul>
-                {previousSuggestions.map((prevSuggestion, index) => (
-                  <li key={index} className="history-item">
-                    {prevSuggestion}
-                    <button
-                      className="insert-suggestion-button"
-                      onClick={() => handleSuggestionClick(prevSuggestion)}
-                    >
-                      Insert
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          <div className='spinnerbox'>
-            {isEditing && <Spinner />}
-          </div>
-        </div>
-      </div>
-
-      <div className={`side-panel ${isArticlesVisible ? 'visible' : ''}`}>
-        <h2>Research Articles</h2>
-        {articles.length > 0 ? (
-          <ul>
-            {articles.map((article) => (
-              <div key={article.id} className='articlebox'>
-                <li>
-                  <a href={article.url} target="_blank" rel="noopener noreferrer">
-                    {article.title}
-                  </a>
-                  <a href={article.url} target="_blank" rel="noopener noreferrer">
-                    {article.url}
-                  </a>
-                  <a href={article.author} target="_blank" rel="noopener noreferrer">
-                    {article.author}
-                  </a>
-                </li>
+            <div className='sugtitle'>{showSuggestionHistory ? 'History' : 'WriterPro Assistant'}</div>
+            <button className="history-button" onClick={toggleSuggestionHistory}>
+              {showSuggestionHistory ? 'Current' : 'History'}
+            </button>
+            {!isEditing && !showSuggestionHistory && suggestion && (
+              <span className="suggestion">{suggestion}</span>
+            )}
+            {!isEditing && showSuggestionHistory && (
+              <div className="suggestion-history">
+                <ul>
+                  {previousSuggestions.map((prevSuggestion, index) => (
+                    <li key={index} className="history-item">
+                      {prevSuggestion}
+                      <button
+                        className="insert-suggestion-button"
+                        onClick={() => handleSuggestionClick(prevSuggestion)}
+                      >
+                        Insert
+                      </button>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            ))}
-          </ul>
-        ) : (
-          <p>No articles found.</p>
-        )}
+            )}
+            <div className='spinnerbox'>
+              {isEditing && <Spinner />}
+            </div>
+          </div>
+        <div className={`side-panel ${isArticlesVisible ? 'visible' : ''}`}>
+          <h2>Research Articles</h2>
+          {articles.length > 0 ? (
+            <ul>
+              {articles.map((article) => (
+                <div key={article.id} className='articlebox'>
+                  <li>
+                    <a href={article.url} target="_blank" rel="noopener noreferrer">
+                      {article.title}
+                    </a>
+                    <a href={article.url} target="_blank" rel="noopener noreferrer">
+                      {article.url}
+                    </a>
+                    <a href={article.author} target="_blank" rel="noopener noreferrer">
+                      {article.author}
+                    </a>
+                  </li>
+                </div>
+              ))}
+            </ul>
+          ) : (
+            <p>No articles found.</p>
+          )}
+        </div>
       </div>
     </div>
   );

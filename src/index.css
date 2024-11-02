@@ -1,3 +1,17 @@
   #root>div {
       border-radius: 0 !important;
   }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .page-shadow {
+    @apply shadow-[0_2px_8px_rgba(0,0,0,0.15)];
+  }
+  
+  .page-shadow-both {
+    @apply shadow-[0_2px_8px_rgba(0,0,0,0.15),0_-2px_8px_rgba(0,0,0,0.15)];
+  }
+}
