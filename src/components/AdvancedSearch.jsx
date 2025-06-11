@@ -1,6 +1,6 @@
 // src/components/AdvancedSearch.jsx
 import '../styles/AdvancedSearch.css';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const AdvancedSearch = ({ criteria, setCriteria }) => {
     const [isExpanded, setIsExpanded] = useState(false);
