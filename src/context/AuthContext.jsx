@@ -1,8 +1,11 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase/firebase'; // Import Google provider
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'; // Import required functions from Firebase storage
-
+import {
+    onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword,
+    signInWithPopup, updateProfile
+} from 'firebase/auth';
+import { auth, googleProvider, storage, db } from '../firebase/firebase'; // Import storage and db as well
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -43,35 +46,30 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         return signOut(auth);
     };
+
     const updateProfilePicture = async (file) => {
         if (!currentUser) return;
 
-        const storageRef = ref(storage, `profilePics/${currentUser.uid}`); // Adjust the path as needed
-        await uploadBytes(storageRef, file); // Upload the file to Firebase Storage
+        const storageRef = ref(storage, `profilePics/${currentUser.uid}`);
+        await uploadBytes(storageRef, file);
 
-        // Get the download URL
         const photoURL = await getDownloadURL(storageRef);
 
-        // Update user profile in Firestore
-        const userRef = doc(db, 'users', currentUser.uid); // Adjust according to your Firestore structure
+        const userRef = doc(db, 'users', currentUser.uid);
         await updateDoc(userRef, { photoURL });
 
-        // Update the current user state
         setCurrentUser((prev) => ({ ...prev, photoURL }));
     };
 
-    // Add Google login function
     const googleLogin = async () => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
 
-            // Check if user exists in Firestore
             const userRef = doc(db, 'users', user.uid);
             const docSnap = await getDoc(userRef);
 
             if (!docSnap.exists()) {
-                // If user doesn't exist, create them with free plan
                 await setDoc(userRef, {
                     name: user.displayName,
                     email: user.email,
@@ -85,6 +83,7 @@ export const AuthProvider = ({ children }) => {
             console.error('Google Sign-In Error:', error);
         }
     };
+
     return (
         <AuthContext.Provider value={{ currentUser, login, signup, logout, googleLogin, updateProfilePicture }}>
             {!loading && children}
