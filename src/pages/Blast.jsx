@@ -7,7 +7,6 @@ import '../styles/Blast.css';
 import { getUserSequences } from '../utils/firebaseSequences';
 import { useAuth } from '../context/AuthContext';
 
-// Styled components for the accordion
 const AccordionButton = styled.button`
   background-color: #1e1e1e;
   color: #4CAF50;
@@ -86,6 +85,7 @@ const Blast = () => {
     const location = useLocation();
     const [sequence, setSequence] = useState('');
     const [database, setDatabase] = useState('nt');
+    const [program, setProgram] = useState('blastn');
     const [results, setResults] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -109,7 +109,6 @@ const Blast = () => {
 
         fetchSavedSequences();
 
-        // Check if there's an accession number from GenBank
         if (location.state && location.state.accession) {
             fetchSequenceAndRunBlast(location.state.accession);
         }
@@ -119,7 +118,6 @@ const Blast = () => {
         try {
             setLoading(true);
             setError('');
-            // Fetch the sequence using the accession number
             const response = await axios.get(`https://eutils.ncbi.nlm.nih.gov/entrez/eutils/efetch.fcgi`, {
                 params: {
                     db: 'nucleotide',
@@ -130,7 +128,6 @@ const Blast = () => {
             });
             const fastaSequence = response.data;
             setSequence(fastaSequence);
-            // Automatically run BLAST with the fetched sequence
             await handleSubmit(null, fastaSequence);
         } catch (error) {
             console.error('Error fetching sequence:', error);
@@ -147,50 +144,36 @@ const Blast = () => {
         }
     };
 
-    const submitBlastJob = async (sequence, database) => {
-        console.log('Submitting BLAST job...');
+    const detectSequenceType = (seq) => {
+        const cleanedSeq = seq.replace(/[^A-Za-z]/g, '').toUpperCase();
+        const nucleotideOnly = /^[ACGTURYKMSWBDHVN]+$/i.test(cleanedSeq);
+        return nucleotideOnly ? 'blastn' : 'blastp';
+    };
+
+    const submitBlastJob = async (sequence, program, database) => {
         const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
 
         const params = new URLSearchParams({
             CMD: 'Put',
-            PROGRAM: 'blastn',
+            PROGRAM: program,
             DATABASE: database,
             QUERY: sequence
         });
 
-        try {
-            const response = await axios.post(proxyUrl, params, {
-                params: { url: targetUrl },
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
+        const response = await axios.post(proxyUrl, params.toString(), {
+            params: { url: targetUrl },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
 
-            console.log('BLAST job submission response:', response);
-
-            if (typeof response.data === 'string') {
-                const ridMatch = response.data.match(/RID\s*=\s*([\w\d-]+)/);
-                if (ridMatch && ridMatch[1]) {
-                    const rid = ridMatch[1].trim();
-                    console.log('Extracted RID:', rid);
-                    return rid;
-                }
-            }
-
-            console.error('No RID found in response. Full response:', response.data);
-            throw new Error('No RID received from BLAST server. Check server logs for full response.');
-        } catch (error) {
-            console.error('Error submitting BLAST job:', error);
-            if (error.response) {
-                console.error('Error response:', error.response.data);
-            }
-            throw error;
+        const ridMatch = response.data.match(/RID\s*=\s*([\w\d-]+)/);
+        if (ridMatch && ridMatch[1]) {
+            return ridMatch[1].trim();
         }
+        throw new Error('No RID received from BLAST server');
     };
 
     const checkBlastStatus = async (rid) => {
-        console.log('Checking BLAST status...');
         const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
 
@@ -200,46 +183,18 @@ const Blast = () => {
             RID: rid
         });
 
-        try {
-            const response = await axios.get(proxyUrl, {
-                params: {
-                    url: targetUrl,
-                    ...Object.fromEntries(params)
-                },
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
+        const response = await axios.get(proxyUrl, {
+            params: { url: `${targetUrl}?${params.toString()}` },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
 
-            console.log('BLAST status response:', response);
-
-            if (typeof response.data === 'string') {
-                if (response.data.includes('Status=WAITING')) {
-                    return 'WAITING';
-                } else if (response.data.includes('Status=READY')) {
-                    return 'READY';
-                } else if (response.data.includes('Status=FAILED')) {
-                    throw new Error('BLAST job failed');
-                } else {
-                    console.error('Unexpected status in response:', response.data);
-                    throw new Error('Unexpected BLAST status');
-                }
-            } else {
-                console.error('Unexpected response type:', typeof response.data);
-                console.log('Raw response data:', response.data);
-                throw new Error('Unexpected response format from BLAST server');
-            }
-        } catch (error) {
-            console.error('Error checking BLAST status:', error);
-            if (error.response) {
-                console.error('Error response:', error.response.data);
-            }
-            throw new Error(`Failed to check BLAST status: ${error.message}`);
-        }
+        if (response.data.includes('Status=WAITING')) return 'WAITING';
+        if (response.data.includes('Status=READY')) return 'READY';
+        if (response.data.includes('Status=FAILED')) throw new Error('BLAST job failed');
+        throw new Error('Unexpected BLAST status');
     };
 
     const getBlastResults = async (rid) => {
-        console.log('Fetching BLAST results...');
         const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
 
@@ -249,47 +204,15 @@ const Blast = () => {
             RID: rid
         });
 
-        try {
-            const response = await axios.get(proxyUrl, {
-                params: {
-                    url: targetUrl,
-                    ...Object.fromEntries(params)
-                },
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
-            });
+        const response = await axios.get(proxyUrl, {
+            params: { url: targetUrl, ...Object.fromEntries(params) },
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
 
-            console.log('BLAST results response type:', typeof response.data);
-            console.log('BLAST results response preview:',
-                typeof response.data === 'string'
-                    ? response.data.substring(0, 500)
-                    : JSON.stringify(response.data).substring(0, 500)
-            );
-
-            if (typeof response.data === 'string') {
-                try {
-                    return JSON.parse(response.data);
-                } catch (parseError) {
-                    console.error('Error parsing JSON response:', parseError);
-                    console.log('Raw response data:', response.data);
-                    throw new Error('Failed to parse BLAST results');
-                }
-            } else if (typeof response.data === 'object') {
-                return response.data;
-            } else {
-                console.error('Unexpected response type:', typeof response.data);
-                console.log('Raw response data:', response.data);
-                throw new Error('Unexpected response format from BLAST server');
-            }
-        } catch (error) {
-            console.error('Error fetching BLAST results:', error);
-            if (error.response) {
-                console.error('Error response status:', error.response.status);
-                console.error('Error response data:', error.response.data);
-            }
-            throw new Error(`Failed to fetch BLAST results: ${error.message}`);
+        if (typeof response.data === 'string') {
+            return JSON.parse(response.data);
         }
+        return response.data;
     };
 
     const handleSubmit = async (e, fastaSequence = null) => {
@@ -301,64 +224,51 @@ const Blast = () => {
 
         try {
             const sequenceToUse = fastaSequence || sequence;
-            const rid = await submitBlastJob(sequenceToUse, database);
-            console.log('Received RID:', rid);
+            const detectedProgram = detectSequenceType(sequenceToUse);
+            const selectedDatabase = detectedProgram === 'blastn' ? 'nt' : 'swissprot';
+            setProgram(detectedProgram);
+            setDatabase(selectedDatabase);
 
+            const rid = await submitBlastJob(sequenceToUse, detectedProgram, selectedDatabase);
             setProgress(10);
             setStatusMessage('Job submitted. Waiting for results...');
 
-            let status;
-            let attempts = 0;
-            const maxAttempts = 60; // 5 minutes maximum wait time
+            let status, attempts = 0;
+            const maxAttempts = 60;
 
             const incrementProgress = () => {
-                setProgress(prevProgress => {
-                    if (prevProgress < 90) {
-                        return prevProgress + (90 - prevProgress) / 10;
-                    }
-                    return prevProgress;
-                });
+                setProgress(prev => (prev < 90 ? prev + (90 - prev) / 10 : prev));
             };
 
             do {
-                await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+                await new Promise(resolve => setTimeout(resolve, 5000));
                 status = await checkBlastStatus(rid);
-                console.log('Current status:', status);
                 attempts++;
                 incrementProgress();
-
-                if (attempts >= maxAttempts) {
-                    throw new Error('BLAST job timed out');
-                }
+                if (attempts >= maxAttempts) throw new Error('BLAST job timed out');
             } while (status === 'WAITING');
 
             if (status === 'READY') {
                 setStatusMessage('Fetching results...');
-                const results = await getBlastResults(rid);
-                setResults(results);
+                const blastResults = await getBlastResults(rid);
+                setResults(blastResults);
                 setProgress(100);
                 setStatusMessage('BLAST search complete!');
-            } else {
-                throw new Error(`Unexpected BLAST status: ${status}`);
             }
-        } catch (error) {
-            console.error('BLAST error:', error);
-            setError('Failed to run BLAST: ' + error.message);
+        } catch (err) {
+            console.error(err);
+            setError('Failed to run BLAST: ' + err.message);
         } finally {
             setLoading(false);
         }
     };
 
     const togglePanel = (panelId) => {
-        setOpenPanels(prevState => ({
-            ...prevState,
-            [panelId]: !prevState[panelId]
-        }));
+        setOpenPanels(prev => ({ ...prev, [panelId]: !prev[panelId] }));
     };
 
     const renderAccordion = (data) => {
         if (!data || !data.BlastOutput2) return null;
-
         return data.BlastOutput2.map((result, index) => (
             <div key={index}>
                 <AccordionButton
@@ -377,11 +287,9 @@ const Blast = () => {
                                 Hit {hitIndex + 1}: {hit.description[0].title}
                             </AccordionButton>
                             <Panel isOpen={openPanels[`hit-${index}-${hitIndex}`]}>
-                                <p>
-                                    <strong>ID:</strong> {hit.description[0].id}<br />
-                                    <strong>Accession:</strong> {hit.description[0].accession}<br />
-                                    <strong>Length:</strong> {hit.len}
-                                </p>
+                                <p><strong>ID:</strong> {hit.description[0].id}</p>
+                                <p><strong>Accession:</strong> {hit.description[0].accession}</p>
+                                <p><strong>Length:</strong> {hit.len}</p>
                                 {hit.hsps.map((hsp, hspIndex) => (
                                     <div key={hspIndex}>
                                         <AccordionButton
@@ -391,13 +299,9 @@ const Blast = () => {
                                             HSP {hspIndex + 1}
                                         </AccordionButton>
                                         <Panel isOpen={openPanels[`hsp-${index}-${hitIndex}-${hspIndex}`]}>
-                                            <p>
-                                                <strong>Bit Score:</strong> {hsp.bit_score}<br />
-                                                <strong>E-value:</strong> {hsp.evalue}<br />
-                                                <strong>Identity:</strong> {hsp.identity} / {hsp.align_len} ({((hsp.identity / hsp.align_len) * 100).toFixed(2)}%)<br />
-                                                <strong>Query Range:</strong> {hsp.query_from} - {hsp.query_to}<br />
-                                                <strong>Hit Range:</strong> {hsp.hit_from} - {hsp.hit_to}
-                                            </p>
+                                            <p><strong>Bit Score:</strong> {hsp.bit_score}</p>
+                                            <p><strong>E-value:</strong> {hsp.evalue}</p>
+                                            <p><strong>Identity:</strong> {hsp.identity} / {hsp.align_len} ({((hsp.identity / hsp.align_len) * 100).toFixed(2)}%)</p>
                                             <Pre>
                                                 <Code>Query: {hsp.qseq}</Code>
                                                 <Code>       {hsp.midline}</Code>
@@ -434,11 +338,6 @@ const Blast = () => {
                     rows="10"
                     required
                 />
-                <select value={database} onChange={(e) => setDatabase(e.target.value)}>
-                    <option value="nt">Nucleotide collection (nt)</option>
-                    <option value="nr">Non-redundant protein sequences (nr)</option>
-                    {/* Add more database options as needed */}
-                </select>
                 <button type="submit" disabled={loading}>
                     {loading ? 'Running BLAST...' : 'Run BLAST'}
                 </button>
