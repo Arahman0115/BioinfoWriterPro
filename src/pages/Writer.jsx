@@ -87,6 +87,7 @@ const Writer = () => {
     }
   };
 
+  const token = user.getIdToken();
   const TriggerWordSpan = (props) => {
     return <span className="styled-block">{props.children}</span>;
   };
@@ -195,32 +196,41 @@ const Writer = () => {
       const currentContent = editorState.getCurrentContent().getPlainText();
       if (currentContent.trim()) {
         try {
+          // Get the Firebase auth token
+          const user = auth.currentUser;
+          if (!user) {
+            throw new Error('User not authenticated');
+          }
+
+          const token = await user.getIdToken();
+
           const payload = {
             text: currentContent.trim()
           };
-    
+
           console.log('Sending request payload:', payload);
-    
+
           const response = await fetch(`${import.meta.env.VITE_API_URL}/api/predict`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
+              'Authorization': `Bearer ${token}`, // <- ADD THIS LINE
             },
             body: JSON.stringify(payload)
           });
-    
+
           const data = await response.json();
-          
+
           if (!response.ok) {
             console.error('Server error details:', data);
             throw new Error(data.error || 'Server error');
           }
-    
+
           if (!data.suggestion) {
             throw new Error('No suggestion received from server');
           }
-    
+
           setSuggestion(data.suggestion);
           setPreviousSuggestions(prev => [...prev, data.suggestion]);
           setIsEditing(false);
@@ -235,6 +245,7 @@ const Writer = () => {
         }
       }
     }, 2000);
+
     // Handle saving with proper project ID management
     saveTimeoutRef.current = setTimeout(async () => {
       try {
@@ -335,7 +346,7 @@ const Writer = () => {
     if (!sectionTitle) return;
 
     // Create new section with content if provided
-    const newSectionContent = content instanceof EditorState 
+    const newSectionContent = content instanceof EditorState
         ? content  // Use provided EditorState directly
         : EditorState.createEmpty(decorator);  // Create empty EditorState if none provided
 
@@ -430,49 +441,49 @@ const Writer = () => {
 
   const addSectionsFromTemplate = () => {
     const templateContent = sections['Template'].content.getCurrentContent().getPlainText();
-    
+
     // Regex to match main sections with Roman numerals and their content
     const mainSectionRegex = /([IVX]+)\.\s+([^\r\n]+)(?:\r?\n|\r)+((?:(?:[A-Z]\.\s+)?[^IVX\r\n][^\r\n]*\r?\n?)*)/g;
-    
+
     // Regex to match subsections starting with letters (A., B., etc.)
     const subSectionRegex = /([A-Z])\.\s+([^\r\n]+)(?:\r?\n|\r)+((?:[^A-Z\r\n][^\r\n]*\r?\n?)*)/g;
-    
+
     let match;
     while ((match = mainSectionRegex.exec(templateContent)) !== null) {
         const sectionNumber = match[1];
         const sectionTitle = match[2].trim();
         const sectionContent = match[3];
-        
+
         // Check if the section has letter-based subsections
         const hasSubsections = sectionContent.match(/[A-Z]\.\s+/);
-        
+
         if (hasSubsections) {
             // Process content with subsections
             let formattedContent = '';
             let subMatch;
-            
+
             while ((subMatch = subSectionRegex.exec(sectionContent)) !== null) {
                 const subSectionLetter = subMatch[1];
                 const subSectionTitle = subMatch[2];
                 const subSectionContent = subMatch[3];
-                
+
                 // Add subsection title
                 formattedContent += `• ${subSectionTitle}\n`;
-                
+
                 // Process bullet points within subsection
                 const bulletPoints = subSectionContent
                     .split('\n')
                     .filter(line => line.trim())
                     .map(line => `  • ${line.trim()}`)
                     .join('\n');
-                
+
                 formattedContent += bulletPoints + '\n';
             }
-            
+
             const contentState = ContentState.createFromText(formattedContent.trim());
             const editorState = EditorState.createWithContent(contentState, decorator);
             handleAddSection(sectionTitle, editorState);
-            
+
         } else {
             // Process content without subsections (simple bullet points)
             const formattedContent = sectionContent
@@ -480,7 +491,7 @@ const Writer = () => {
                 .filter(line => line.trim())
                 .map(line => `• ${line.trim().replace(/^-\s*/, '')}`)
                 .join('\n');
-            
+
             const contentState = ContentState.createFromText(formattedContent.trim());
             const editorState = EditorState.createWithContent(contentState, decorator);
             handleAddSection(sectionTitle, editorState);
@@ -661,7 +672,7 @@ const Writer = () => {
             <p>No content available for this section.</p>
           )}
 
-     
+
         </div>
         <div className="suggestion-overlay">
             <div className='sugtitle'>{showSuggestionHistory ? 'History' : 'WriterPro Assistant'}</div>
