@@ -28,6 +28,15 @@ export const AuthProvider = ({ children }) => {
     const signup = async (email, password, name) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
+
+        // Write user data to Firestore with default plan "free"
+        await setDoc(doc(db, 'users', userCredential.user.uid), {
+            name: name,
+            email: email,
+            plan: 'free',
+            createdAt: new Date()
+        });
+
         return userCredential;
     };
 
@@ -56,13 +65,26 @@ export const AuthProvider = ({ children }) => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
-            console.log('User Info:', user); // Log user info for debugging
-            // You can store user data in Firestore if needed
+
+            // Check if user exists in Firestore
+            const userRef = doc(db, 'users', user.uid);
+            const docSnap = await getDoc(userRef);
+
+            if (!docSnap.exists()) {
+                // If user doesn't exist, create them with free plan
+                await setDoc(userRef, {
+                    name: user.displayName,
+                    email: user.email,
+                    plan: 'free',
+                    createdAt: new Date()
+                });
+            }
+
+            console.log('User Info:', user);
         } catch (error) {
             console.error('Google Sign-In Error:', error);
         }
     };
-
     return (
         <AuthContext.Provider value={{ currentUser, login, signup, logout, googleLogin, updateProfilePicture }}>
             {!loading && children}
