@@ -54,7 +54,7 @@ const LandingPage = () => {
                 <h2>What Our Users Say</h2>
                 <div className="testimonial">
                     <p>"BioinfoWriterPro has revolutionized how I write research papers. It's an indispensable tool for any bioinformatician."</p>
-                    <cite>- Dr. Jane Doe, Lead Researcher at Genomics Institute</cite>
+                    <cite>- Ocean Uddin</cite>
                 </div>
             </section>
         </div>
