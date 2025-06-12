@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import '../styles/LandingPage.css';
 import wbg from '../assets/wbg.png'; // Assume you have a logo file
 import deoxy from '../assets/deoxy.png';
+import DnaModel from '..components/DnaModel'; // adjust path
 
 const LandingPage = () => {
     return (
@@ -29,22 +30,22 @@ const LandingPage = () => {
                 <h2>Key Features</h2>
                 <div className="feature-grid">
                     <div className="feature-item">
-                        <i className="feature-icon">🧬</i>
+
                         <h3>Genomic Data Analysis</h3>
                         <p>Streamline your genomic data analysis workflow with our intelligent tools.</p>
                     </div>
                     <div className="feature-item">
-                        <i className="feature-icon">📊</i>
+
                         <h3>Data Visualization</h3>
                         <p>Create publication-ready figures and charts with ease.</p>
                     </div>
                     <div className="feature-item">
-                        <i className="feature-icon">🤖</i>
+
                         <h3>AI-Assisted Writing</h3>
                         <p>Get smart suggestions and autocompletions tailored for bioinformatics papers.</p>
                     </div>
                     <div className="feature-item">
-                        <i className="feature-icon">📚</i>
+
                         <h3>Literature Integration</h3>
                         <p>Seamlessly integrate and cite relevant research papers.</p>
                     </div>
