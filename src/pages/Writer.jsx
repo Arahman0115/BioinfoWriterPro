@@ -1,5 +1,6 @@
 import 'global';
-import React, { useState, useRef, useEffect } from 'react';
+// --- FIX: Import useCallback ---
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import '../styles/Writer.css';
 import Toolbar from '../components/Toolbar';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -7,7 +8,7 @@ import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db, auth } from '../firebase/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import { saveAs } from 'file-saver';
-import { Document, Packer, Paragraph, TextRun } from 'docx';
+import { Document, Packer, Paragraph } from 'docx';
 import { saveContent } from '../utils/contentManager';
 import { Editor, EditorState, ContentState, Modifier, CompositeDecorator, getDefaultKeyBinding } from 'draft-js';
 import 'draft-js/dist/Draft.css';
@@ -26,14 +27,21 @@ const formatCitation = (article) => {
   return citation;
 };
 
+const debounce = (func, delay) => {
+  let timeoutId;
+  return (...args) => {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => func(...args), delay);
+  };
+};
+
 const Writer = () => {
-  // --- CORRECTED HOOK ORDER ---
-  // 1. Hooks that provide values (navigation, location)
+  // --- HOOKS ---
   const navigate = useNavigate();
   const location = useLocation();
   const user = auth.currentUser;
 
-  // 2. State Hooks (`useState`). `currentProject` can now safely use `location`.
+  // State Hooks
   const [currentProject, setCurrentProject] = useState(location.state?.project);
   const [title, setTitle] = useState('');
   const [isTitleSet, setIsTitleSet] = useState(false);
@@ -51,11 +59,13 @@ const Writer = () => {
   const [isArticlesVisible, setIsArticlesVisible] = useState(false);
   const [articles, setArticles] = useState([]);
   const [isTitleEditing, setIsTitleEditing] = useState(false);
+  const [userWantsTextPrediction, setUserWantsTextPrediction] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
 
-  // 3. Ref Hooks
+  // Ref Hooks
   const suggestionTimeoutRef = useRef(null);
   const saveTimeoutRef = useRef(null);
-  // --- END OF HOOKS ---
+  const lastSaveContentRef = useRef(null); // Track last saved content to prevent duplicate saves
 
   // Decorator setup for Draft.js
   const triggerWordStrategy = (contentBlock, callback) => {
@@ -67,31 +77,62 @@ const Writer = () => {
       callback(start, start + matchArr[0].length);
     }
   };
+  const TriggerWordSpan = (props) => <span className="styled-block">{props.children}</span>;
+  const decorator = new CompositeDecorator([{ strategy: triggerWordStrategy, component: TriggerWordSpan }]);
 
-  const TriggerWordSpan = (props) => (
-    <span className="styled-block">{props.children}</span>
-  );
+  const debouncedSaveContent = useCallback(debounce(async (contentToSave, currentSectionOrder, currentTitle, currentArticles) => {
+    if (isSaving) return;
 
-  const decorator = new CompositeDecorator([
-    { strategy: triggerWordStrategy, component: TriggerWordSpan },
-  ]);
+    // Create a hash of the content to compare with last save
+    const contentHash = JSON.stringify({
+      content: contentToSave,
+      sectionOrder: currentSectionOrder,
+      title: currentTitle,
+      articles: currentArticles
+    });
+
+    // Don't save if content hasn't changed
+    if (lastSaveContentRef.current === contentHash) {
+      return;
+    }
+
+    setIsSaving(true);
+    setFeedbackMessage('Saving...');
+
+    try {
+      const result = await saveContent(user, currentProject, contentToSave, currentSectionOrder, currentTitle, currentArticles);
+
+      if (result?.isNew) {
+        const newProjectData = { id: result.id, title: currentTitle, sections: contentToSave, sectionOrder: currentSectionOrder, articles: currentArticles };
+        setCurrentProject(newProjectData);
+        window.history.replaceState({ ...window.history.state, usr: { ...(window.history.state.usr || {}), project: newProjectData }}, '');
+      }
+
+      lastSaveContentRef.current = contentHash; // Update last saved content hash
+      setFeedbackMessage('Saved');
+      setTimeout(() => setFeedbackMessage(''), 2000);
+    } catch (error) {
+      console.error('Error saving content:', error);
+      setFeedbackMessage('Error saving content');
+      setTimeout(() => setFeedbackMessage(''), 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  }, 3000), [user, currentProject, isSaving]);
 
   // Effect for fetching initial project data from location state
   useEffect(() => {
     const projectFromLocation = location.state?.project;
+    console.log('Project from location:', projectFromLocation);
     if (projectFromLocation) {
       const { title = '', sections = {}, sectionOrder, articles = [] } = projectFromLocation;
       setTitle(title);
-      // Ensure sections are populated correctly, even if empty
       const initialSections = Object.keys(sections).length > 0 ? sections : { Template: { content: '' } };
       setSections(
         Object.entries(initialSections).reduce((acc, [key, value]) => {
           acc[key] = {
             ...value,
-            content: EditorState.createWithContent(
-              ContentState.createFromText(value.content || ''),
-              decorator
-            ),
+            content: EditorState.createWithContent(ContentState.createFromText(value.content || ''), decorator),
           };
           return acc;
         }, {})
@@ -116,15 +157,21 @@ const Writer = () => {
           const articlesSnapshot = await getDocs(articlesCollection);
           const articlesList = articlesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           setArticles(articlesList);
-        } catch (error) {
-          console.error("Error fetching articles: ", error);
-        }
+        } catch (error) { console.error("Error fetching articles: ", error); }
       }
     };
     fetchArticles();
   }, [user, currentProject?.id]);
 
-  const handleChange = (editorState) => {
+  // Cleanup effect for timeouts on unmount
+  useEffect(() => {
+    return () => {
+      clearTimeout(suggestionTimeoutRef.current);
+      clearTimeout(saveTimeoutRef.current);
+    };
+  }, []);
+
+  const handleChange = useCallback((editorState) => {
     const updatedSections = {
       ...sections,
       [activeSection]: { ...sections[activeSection], content: editorState },
@@ -136,70 +183,63 @@ const Writer = () => {
     if (suggestionTimeoutRef.current) clearTimeout(suggestionTimeoutRef.current);
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
-    // Suggestion logic
-    suggestionTimeoutRef.current = setTimeout(async () => {
-      const currentContent = editorState.getCurrentContent().getPlainText();
-      if (currentContent.trim() && user) {
-        try {
-          const token = await user.getIdToken();
-          const response = await fetch(`${import.meta.env.VITE_API_URL}/api/predict`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${token}`,
-            },
-            body: JSON.stringify({ text: currentContent.trim() }),
-          });
-          const data = await response.json();
-          if (!response.ok) throw new Error(data.error || 'Server error');
-          if (data.suggestion) {
-            setSuggestion(data.suggestion);
-            setPreviousSuggestions(prev => [...prev, data.suggestion]);
+    if (userWantsTextPrediction) {
+      suggestionTimeoutRef.current = setTimeout(async () => {
+        const currentContent = editorState.getCurrentContent().getPlainText();
+        if (currentContent.trim() && user) {
+          try {
+            const token = await user.getIdToken();
+            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/predict`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+              body: JSON.stringify({ text: currentContent.trim() }),
+            });
+            const data = await response.json();
+            if (!response.ok) throw new Error(data.error || 'Server error');
+            if (data.suggestion) {
+              setSuggestion(data.suggestion);
+              setPreviousSuggestions(prev => [...prev, data.suggestion]);
+            }
+          } catch (error) {
+            console.error('Error getting suggestion:', error);
+            setFeedbackMessage('Suggestion error');
+          } finally {
+            setIsEditing(false);
           }
-        } catch (error) {
-          console.error('Error getting suggestion:', error);
-          setFeedbackMessage('Suggestion error');
-        } finally {
+        } else {
           setIsEditing(false);
         }
-      } else {
-        setIsEditing(false);
-      }
-    }, 2000);
+      }, 2000);
+    } else {
+      setSuggestion('');
+      suggestionTimeoutRef.current = setTimeout(() => { setIsEditing(false); }, 1000);
+    }
 
-    // Corrected save logic
-    saveTimeoutRef.current = setTimeout(async () => {
-      try {
-        const contentToSave = Object.entries(updatedSections).reduce((acc, [key, value]) => {
-          acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
-          return acc;
-        }, {});
-
-        const result = await saveContent(user, currentProject, contentToSave, sectionOrder, title, articles);
-
-        if (result?.isNew) {
-          const newProjectData = { id: result.id, title, sections: contentToSave, sectionOrder, articles };
-          setCurrentProject(newProjectData);
-          window.history.replaceState({ ...window.history.state, usr: { ...(window.history.state.usr || {}), project: newProjectData }}, '');
-        }
-        setFeedbackMessage('Saving...');
-        setTimeout(() => setFeedbackMessage('Saved'), 2000);
-      } catch (error) {
-        console.error('Error saving content:', error);
-        setFeedbackMessage('Error saving content');
-      }
-    }, 4000);
-  };
-
-  const getContentToSave = () => {
-    return Object.entries(sections).reduce((acc, [key, value]) => {
-        acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
-        return acc;
+    // Prepare content and trigger save with current values
+    const contentToSave = Object.entries(updatedSections).reduce((acc, [key, value]) => {
+      acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
+      return acc;
     }, {});
-  };
+
+    debouncedSaveContent(contentToSave, sectionOrder, title, articles);
+  }, [
+    sections,
+    activeSection,
+    sectionOrder,
+    title,
+    articles,
+    userWantsTextPrediction,
+    user,
+    debouncedSaveContent
+  ]);
 
   const handleSave = () => {
-    saveContent(user, currentProject, getContentToSave(), sectionOrder, title, articles);
+    const contentToSave = Object.entries(sections).reduce((acc, [key, value]) => {
+      acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
+      return acc;
+    }, {});
+
+    debouncedSaveContent(contentToSave, sectionOrder, title, articles);
     setFeedbackMessage('Saved!');
     setTimeout(() => setFeedbackMessage(''), 2000);
   };
@@ -207,12 +247,17 @@ const Writer = () => {
   const handleTitleKeyDown = (e) => {
     if (e.key === 'Enter') {
       handleTitleBlur();
-      saveContent(user, currentProject, getContentToSave(), sectionOrder, title, articles);
+      const contentToSave = Object.entries(sections).reduce((acc, [key, value]) => {
+        acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
+        return acc;
+      }, {});
+      debouncedSaveContent(contentToSave, sectionOrder, title, articles);
     }
   };
 
   const handleDeleteSection = (sectionName) => {
     if (sectionName === 'Template' || Object.keys(sections).length <= 1) return;
+
     const newSections = { ...sections };
     delete newSections[sectionName];
     setSections(newSections);
@@ -221,15 +266,17 @@ const Writer = () => {
     if (activeSection === sectionName) {
       setActiveSection(newSectionOrder[0] || '');
     }
+
     const contentToSave = Object.entries(newSections).reduce((acc, [key, value]) => {
       acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
       return acc;
     }, {});
-    saveContent(user, currentProject, contentToSave, newSectionOrder, title, articles);
+
+    debouncedSaveContent(contentToSave, newSectionOrder, title, articles);
   };
 
   const handleKeyCommand = (command, editorState) => {
-    if (command === 'insert-suggestion' && suggestion) {
+    if (command === 'insert-suggestion' && suggestion && userWantsTextPrediction) {
       const newState = Modifier.insertText(
         editorState.getCurrentContent(),
         editorState.getSelection(),
@@ -243,7 +290,7 @@ const Writer = () => {
   };
 
   const keyBindingFn = (e) => {
-    if (e.keyCode === 9 && !e.shiftKey && suggestion) {
+    if (e.keyCode === 9 && !e.shiftKey && suggestion && userWantsTextPrediction) {
       e.preventDefault();
       return 'insert-suggestion';
     }
@@ -263,10 +310,20 @@ const Writer = () => {
     if (!sectionTitle || sections[sectionTitle]) return;
     const newSectionContent = content instanceof EditorState
         ? content : EditorState.createEmpty(decorator);
-    setSections(prev => ({ ...prev, [sectionTitle]: { id: `section-${Date.now()}`, content: newSectionContent }}));
-    setSectionOrder(prev => [...prev, sectionTitle]);
+    const updatedSections = { ...sections, [sectionTitle]: { id: `section-${Date.now()}`, content: newSectionContent }};
+    const updatedSectionOrder = [...sectionOrder, sectionTitle];
+
+    setSections(updatedSections);
+    setSectionOrder(updatedSectionOrder);
     setNewSection('');
     setActiveSection(sectionTitle);
+
+    const contentToSave = Object.entries(updatedSections).reduce((acc, [key, value]) => {
+      acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
+      return acc;
+    }, {});
+
+    debouncedSaveContent(contentToSave, updatedSectionOrder, title, articles);
   };
 
   const onDragEnd = (result) => {
@@ -275,6 +332,13 @@ const Writer = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
     setSectionOrder(items);
+
+    const contentToSave = Object.entries(sections).reduce((acc, [key, value]) => {
+      acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
+      return acc;
+    }, {});
+
+    debouncedSaveContent(contentToSave, items, title, articles);
   };
 
   const combineSections = () => {
@@ -304,7 +368,7 @@ const Writer = () => {
 
   const handleCitationManagerClick = () => {
     if (articles.length > 0) {
-      const citationsContent = articles.map(formatCitation).join('\n\n');
+      const citationsContent = articles.map(formatCitation).join( '\n\n');
       const contentState = ContentState.createFromText(citationsContent);
       const editorState = EditorState.createWithContent(contentState, decorator);
       handleAddSection('Citations', editorState);
@@ -436,10 +500,19 @@ const Writer = () => {
 
         <div className="suggestion-overlay">
             <div className='sugtitle'>{showSuggestionHistory ? 'History' : 'WriterPro Assistant'}</div>
-            <button className="history-button" onClick={toggleSuggestionHistory}>
-              {showSuggestionHistory ? 'Current' : 'History'}
-            </button>
-            {!isEditing && !showSuggestionHistory && suggestion && (
+            <div className="suggestion-controls">
+              <button className="history-button" onClick={toggleSuggestionHistory}>
+                {showSuggestionHistory ? 'Current' : 'History'}
+              </button>
+              <button
+                className="ai-toggle-button"
+                onClick={() => setUserWantsTextPrediction(prev => !prev)}
+                title={userWantsTextPrediction ? "Turn off AI text completion" : "Turn on AI text completion"}
+              >
+                {userWantsTextPrediction ? 'Turn Text Completion Off' : 'Turn Text Completion On'}
+              </button>
+            </div>
+            {!isEditing && !showSuggestionHistory && suggestion && userWantsTextPrediction && (
               <span className="suggestion">{suggestion}</span>
             )}
             {!isEditing && showSuggestionHistory && (
@@ -460,7 +533,7 @@ const Writer = () => {
               </div>
             )}
             <div className='spinnerbox'>
-              {isEditing && <Spinner />}
+              {isEditing && userWantsTextPrediction && <Spinner />}
             </div>
         </div>
 

@@ -18,7 +18,7 @@ body {
 
 .research-container h1 {
     text-align: center;
-    color: darkgreen;
+    color: #46ad69;
     margin-bottom: 20px;
 }
 
@@ -55,7 +55,7 @@ body {
     border: 1px solid #ffffff;
     border-left: none;
     border-radius: 0 4px 4px 0;
-    background-color: darkgreen;
+    background-color: #46ad69;
     color: #ffffff;
     cursor: pointer;
     transition: all 0.3s ease;
@@ -118,6 +118,7 @@ body {
     margin-bottom: 20px;
     font-size: 3.5rem;
     text-wrap: wrap;
+    color:#46ad69;
 }
 
 .research-article-box {
