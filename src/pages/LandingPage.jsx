@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import '../styles/LandingPage.css';
 import wbg from '../assets/wbg.png'; // Assume you have a logo file
 import deoxy from '../assets/deoxy.png';
-import DnaModel from '..components/DnaModel'; // adjust path
 
 const LandingPage = () => {
     return (
