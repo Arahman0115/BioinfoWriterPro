@@ -3,9 +3,8 @@ import {
     onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword,
     signInWithPopup, updateProfile
 } from 'firebase/auth';
-import { auth, googleProvider, storage, db } from '../firebase/firebase'; // Import storage and db as well
+import { auth, googleProvider, storage } from '../firebase/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 
 const AuthContext = createContext();
 
@@ -32,12 +31,18 @@ export const AuthProvider = ({ children }) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
 
-        // Write user data to Firestore with default plan "free"
-        await setDoc(doc(db, 'users', userCredential.user.uid), {
-            name: name,
-            email: email,
-            plan: 'free',
-            createdAt: new Date()
+        const token = await userCredential.user.getIdToken();
+
+        await fetch(`${import.meta.env.VITE_API_URL}/api/init-user`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                name,
+                email
+            })
         });
 
         return userCredential;
@@ -54,10 +59,6 @@ export const AuthProvider = ({ children }) => {
         await uploadBytes(storageRef, file);
 
         const photoURL = await getDownloadURL(storageRef);
-
-        const userRef = doc(db, 'users', currentUser.uid);
-        await updateDoc(userRef, { photoURL });
-
         setCurrentUser((prev) => ({ ...prev, photoURL }));
     };
 
@@ -66,17 +67,19 @@ export const AuthProvider = ({ children }) => {
             const result = await signInWithPopup(auth, googleProvider);
             const user = result.user;
 
-            const userRef = doc(db, 'users', user.uid);
-            const docSnap = await getDoc(userRef);
+            const token = await user.getIdToken();
 
-            if (!docSnap.exists()) {
-                await setDoc(userRef, {
+            await fetch(`${import.meta.env.VITE_API_URL}/api/init-user`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
                     name: user.displayName,
-                    email: user.email,
-                    plan: 'free',
-                    createdAt: new Date()
-                });
-            }
+                    email: user.email
+                })
+            });
 
             console.log('User Info:', user);
         } catch (error) {

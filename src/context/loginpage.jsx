@@ -13,6 +13,7 @@ const LogInPage = () => {
     const [error, setError] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         // Check if the state passed from the landing page indicates signup
@@ -23,13 +24,15 @@ const LogInPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError(''); // Clear any existing errors
+        setError('');
+        setIsLoading(true);
         try {
             if (isLogin) {
                 await login(email, password);
             } else {
                 if (!name.trim()) {
                     setError('Please enter your name');
+                    setIsLoading(false);
                     return;
                 }
                 await signup(email, password, name);
@@ -46,16 +49,21 @@ const LogInPage = () => {
             } else {
                 setError('An error occurred. Please try again.');
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
     const handleGoogleLogin = async () => {
+        setIsLoading(true);
         try {
             await googleLogin();
             navigate('/Homepage');
         } catch (error) {
             console.error(error);
-
+            setError('Google login failed');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -88,9 +96,9 @@ const LogInPage = () => {
                         placeholder="Password"
                         className="login-input"
                     />
-                    <button type="submit" className="login-button">
-                        {isLogin ? 'Login' : 'Signup'}
-                    </button>
+                    <button type="submit" className="login-button" disabled={isLoading}>
+    {isLogin ? 'Login' : 'Signup'}
+</button>
 
                     {/* Divider with "OR" */}
                     <div className="divider-wrapper">
@@ -99,14 +107,10 @@ const LogInPage = () => {
 
                     {/* Google Login Button */}
 
-                    <button onClick={handleGoogleLogin} className="google-login-button">
-                        <img
-                            src={googleImage}
-                            alt="Google Sign-In"
-                            className="google-login-image"
-                        />
-                        {isLogin ? 'Sign in' : 'Sign up'} with Google
-                    </button>
+                    <button type="button" onClick={handleGoogleLogin} className="google-login-button" disabled={isLoading}>
+    <img src={googleImage} alt="Google Sign-In" className="google-login-image" />
+    {isLogin ? 'Sign in' : 'Sign up'} with Google
+</button>
 
                     <button
                         type="button"

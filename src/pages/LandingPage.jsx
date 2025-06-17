@@ -21,7 +21,7 @@ const LandingPage = () => {
                 <h1 className="hero-title">BioScribe</h1>
                 <p className="tagline">Accelerate Your Bioinformatics Research with AI-Powered Writing</p>
                 <div className="cta-buttons">
-                    <Link to="/signup" className="cta-button primary">Get Started</Link>
+                    <Link to="/login" className="cta-button primary">Get Started</Link>
                     <Link to="/demo" className="cta-button secondary">Docs</Link>
                 </div>
             </header>
