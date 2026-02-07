@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../styles/Mafft.css';
 import { ChevronLeft } from 'lucide-react';
+import { apiClient, getErrorMessage } from '../utils/apiClient';
 
 const Mafft = () => {
     const [sequences, setSequences] = useState('');
@@ -16,10 +17,14 @@ const Mafft = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/mafft`, { sequences });
-            setResult(response.data.alignedSequences);
+            const data = await apiClient.longRunningRequest('/api/mafft', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sequences })
+            });
+            setResult(data.alignedSequences);
         } catch (err) {
-            setError('Failed to run sequence alignment: ' + err.message);
+            setError(getErrorMessage(err));
         } finally {
             setLoading(false);
         }

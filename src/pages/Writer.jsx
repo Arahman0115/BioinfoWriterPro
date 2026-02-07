@@ -14,6 +14,7 @@ import { Editor, EditorState, ContentState, Modifier, CompositeDecorator, getDef
 import 'draft-js/dist/Draft.css';
 import Spinner from '../components/Spinner';
 import GoogleDocsWriter from './GoogleDocsWriter';
+import { apiClient, getErrorMessage } from '../utils/apiClient';
 
 // Helper function for MLA citation format
 const formatCitation = (article) => {
@@ -189,20 +190,18 @@ const Writer = () => {
         if (currentContent.trim() && user) {
           try {
             const token = await user.getIdToken();
-            const response = await fetch(`${import.meta.env.VITE_API_URL}/api/predict`, {
+            const data = await apiClient.request('/api/predict', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
               body: JSON.stringify({ text: currentContent.trim() }),
             });
-            const data = await response.json();
-            if (!response.ok) throw new Error(data.error || 'Server error');
             if (data.suggestion) {
               setSuggestion(data.suggestion);
               setPreviousSuggestions(prev => [...prev, data.suggestion]);
             }
           } catch (error) {
             console.error('Error getting suggestion:', error);
-            setFeedbackMessage('Suggestion error');
+            setFeedbackMessage('Suggestion unavailable');
           } finally {
             setIsEditing(false);
           }

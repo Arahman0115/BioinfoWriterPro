@@ -6,6 +6,7 @@ import styled from 'styled-components';
 import '../styles/Blast.css';
 import { getUserSequences } from '../utils/firebaseSequences';
 import { useAuth } from '../context/AuthContext';
+import { apiClient, getErrorMessage } from '../utils/apiClient';
 
 const AccordionButton = styled.button`
   background-color: #1e1e1e;
@@ -151,7 +152,7 @@ const Blast = () => {
     };
 
     const submitBlastJob = async (sequence, program, database) => {
-        const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
+        const proxyUrl = '/api/proxy';
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
 
         const params = new URLSearchParams({
@@ -161,12 +162,16 @@ const Blast = () => {
             QUERY: sequence
         });
 
-        const response = await axios.post(proxyUrl, params.toString(), {
-            params: { url: targetUrl },
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        const data = await apiClient.longRunningRequest(proxyUrl, {
+            method: 'POST',
+            body: params.toString(),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            // Pass URL as query param
+            url: targetUrl
         });
 
-        const ridMatch = response.data.match(/RID\s*=\s*([\w\d-]+)/);
+        const responseText = typeof data === 'string' ? data : JSON.stringify(data);
+        const ridMatch = responseText.match(/RID\s*=\s*([\w\d-]+)/);
         if (ridMatch && ridMatch[1]) {
             return ridMatch[1].trim();
         }
@@ -174,7 +179,7 @@ const Blast = () => {
     };
 
     const checkBlastStatus = async (rid) => {
-        const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
+        const proxyUrl = '/api/proxy';
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
 
         const params = new URLSearchParams({
@@ -183,19 +188,21 @@ const Blast = () => {
             RID: rid
         });
 
-        const response = await axios.get(proxyUrl, {
-            params: { url: `${targetUrl}?${params.toString()}` },
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        const data = await apiClient.longRunningRequest(proxyUrl, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            url: `${targetUrl}?${params.toString()}`
         });
 
-        if (response.data.includes('Status=WAITING')) return 'WAITING';
-        if (response.data.includes('Status=READY')) return 'READY';
-        if (response.data.includes('Status=FAILED')) throw new Error('BLAST job failed');
+        const responseText = typeof data === 'string' ? data : JSON.stringify(data);
+        if (responseText.includes('Status=WAITING')) return 'WAITING';
+        if (responseText.includes('Status=READY')) return 'READY';
+        if (responseText.includes('Status=FAILED')) throw new Error('BLAST job failed');
         throw new Error('Unexpected BLAST status');
     };
 
     const getBlastResults = async (rid) => {
-        const proxyUrl = `${import.meta.env.VITE_API_URL}/api/proxy`;
+        const proxyUrl = '/api/proxy';
         const targetUrl = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
 
         const params = new URLSearchParams({
@@ -204,15 +211,16 @@ const Blast = () => {
             RID: rid
         });
 
-        const response = await axios.get(proxyUrl, {
-            params: { url: targetUrl, ...Object.fromEntries(params) },
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        const data = await apiClient.longRunningRequest(proxyUrl, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            url: `${targetUrl}?${params.toString()}`
         });
 
-        if (typeof response.data === 'string') {
-            return JSON.parse(response.data);
+        if (typeof data === 'string') {
+            return JSON.parse(data);
         }
-        return response.data;
+        return data;
     };
 
     const handleSubmit = async (e, fastaSequence = null) => {

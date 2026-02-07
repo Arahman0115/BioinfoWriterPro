@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import '../styles/GeneralSearch.css';
 import { ChevronLeft } from 'lucide-react';
+import { apiClient, getErrorMessage } from '../utils/apiClient';
 
 
 const GeneralSearch = () => {
@@ -44,12 +45,16 @@ const GeneralSearch = () => {
         if (!searchTerm) return; // Prevent search with empty term
         setLoading(true); // Set loading state
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/search`, { searchTerm });
-            setResults(response.data.results);
+            const data = await apiClient.request('/api/search', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ searchTerm })
+            });
+            setResults(data.results);
             setCurrentPage(1); // Reset to the first page on new search
         } catch (error) {
             console.error("Error fetching data from server:", error);
-            // Optionally show an error message to the userd
+            // Optionally show an error message to the user
         } finally {
             setLoading(false); // Reset loading state
         }

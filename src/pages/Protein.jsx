@@ -4,6 +4,7 @@ import { ChevronLeft, Upload, Download, Search, RotateCw } from 'lucide-react';
 import axios from 'axios';
 import '../styles/Protein.css';
 import ProteinViewer from '../components/ProteinViewer';
+import { apiClient, getErrorMessage } from '../utils/apiClient';
 
 const Protein = () => {
     const navigate = useNavigate();
@@ -34,11 +35,15 @@ const Protein = () => {
         setError('');
         setStatus('Submitting job...');
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/predict-structure`, { sequence });
-            setPredictionResult(response.data);
+            const data = await apiClient.longRunningRequest('/api/predict-structure', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sequence })
+            });
+            setPredictionResult(data);
             setStatus('');
         } catch (err) {
-            setError('Error predicting structure: ' + err.message);
+            setError(getErrorMessage(err));
             setStatus('');
         }
         setLoading(false);

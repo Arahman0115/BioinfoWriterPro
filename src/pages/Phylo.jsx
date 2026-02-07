@@ -4,6 +4,7 @@ import PhyloCanvas from 'phylocanvas';
 import '../styles/Phylo.css';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { apiClient, getErrorMessage } from '../utils/apiClient';
 
 const Phylo = () => {
     const [sequences, setSequences] = useState('');
@@ -41,11 +42,15 @@ const Phylo = () => {
 
             console.log('Formatted sequences:', formattedSequences); // For debugging
 
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/align`, { sequences: formattedSequences });
-            setAlignedSequences(response.data.alignedSequences);
-            console.log('Aligned sequences:', response.data.alignedSequences);
+            const data = await apiClient.longRunningRequest('/api/align', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sequences: formattedSequences })
+            });
+            setAlignedSequences(data.alignedSequences);
+            console.log('Aligned sequences:', data.alignedSequences);
         } catch (err) {
-            setError('Error during alignment: ' + err.message);
+            setError(getErrorMessage(err));
             console.error('Alignment error:', err);
         }
         setLoading(false);
@@ -55,13 +60,15 @@ const Phylo = () => {
         setLoading(true);
         setError('');
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/construct-tree`, {
-                sequences: alignedSequences || sequences
+            const data = await apiClient.longRunningRequest('/api/construct-tree', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sequences: alignedSequences || sequences })
             });
-            console.log('Received tree data:', response.data.tree);
-            setTree(response.data.tree);
+            console.log('Received tree data:', data.tree);
+            setTree(data.tree);
         } catch (err) {
-            setError('Error during tree construction: ' + err.message);
+            setError(getErrorMessage(err));
             console.error('Tree construction error:', err);
         }
         setLoading(false);

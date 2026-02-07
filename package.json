@@ -15,6 +15,8 @@
     "@mui/icons-material": "^6.1.4",
     "@mui/material": "^6.1.5",
     "axios": "^1.7.7",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "cors": "^2.8.5",
     "d3": "^7.9.0",
     "docx": "^9.0.2",
@@ -30,7 +32,6 @@
     "global": "^4.4.0",
     "helmet": "^8.0.0",
     "heroku": "^8.7.1",
-    "heroku-cli": "^7.0.9",
     "lucide-react": "^0.453.0",
     "ngl": "^2.4.0",
     "openai": "^4.68.4",
@@ -49,7 +50,8 @@
     "setimmediate": "^1.0.5",
     "styled-components": "^6.1.13",
     "swagger-client": "^3.29.4",
-    "tailwind": "^4.0.0"
+    "tailwind-merge": "^3.4.0",
+    "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

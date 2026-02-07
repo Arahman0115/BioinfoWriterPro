@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
 import '../styles/LogInPage.css'; // Import the CSS file
@@ -14,6 +14,8 @@ const LogInPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [isLoading, setIsLoading] = useState(false);
+    const [timeoutWarning, setTimeoutWarning] = useState(false);
+    const timeoutWarningRef = useRef(null);
 
     useEffect(() => {
         // Check if the state passed from the landing page indicates signup
@@ -26,6 +28,13 @@ const LogInPage = () => {
         e.preventDefault();
         setError('');
         setIsLoading(true);
+        setTimeoutWarning(false);
+
+        // Show timeout warning after 5 seconds
+        timeoutWarningRef.current = setTimeout(() => {
+            setTimeoutWarning(true);
+        }, 5000);
+
         try {
             if (isLogin) {
                 await login(email, password);
@@ -33,37 +42,63 @@ const LogInPage = () => {
                 if (!name.trim()) {
                     setError('Please enter your name');
                     setIsLoading(false);
+                    if (timeoutWarningRef.current) clearTimeout(timeoutWarningRef.current);
                     return;
                 }
                 await signup(email, password, name);
             }
+            if (timeoutWarningRef.current) clearTimeout(timeoutWarningRef.current);
             navigate('/Homepage');
         } catch (error) {
             console.error(error);
+            if (timeoutWarningRef.current) clearTimeout(timeoutWarningRef.current);
+
             if (error.code === 'auth/invalid-credential' ||
                 error.code === 'auth/user-not-found' ||
                 error.code === 'auth/wrong-password') {
                 setError('Incorrect email or password');
             } else if (error.code === 'auth/email-already-in-use') {
                 setError('Email already in use');
+            } else if (error.code === 'auth/network-request-failed' || error.message?.includes('network')) {
+                setError('Network error. Please check your connection and try again.');
+            } else if (error.message?.includes('timeout')) {
+                setError('Request took too long. Please check your connection and try again.');
             } else {
                 setError('An error occurred. Please try again.');
             }
         } finally {
             setIsLoading(false);
+            setTimeoutWarning(false);
         }
     };
 
     const handleGoogleLogin = async () => {
         setIsLoading(true);
+        setTimeoutWarning(false);
+
+        // Show timeout warning after 5 seconds
+        timeoutWarningRef.current = setTimeout(() => {
+            setTimeoutWarning(true);
+        }, 5000);
+
         try {
             await googleLogin();
+            if (timeoutWarningRef.current) clearTimeout(timeoutWarningRef.current);
             navigate('/Homepage');
         } catch (error) {
             console.error(error);
-            setError('Google login failed');
+            if (timeoutWarningRef.current) clearTimeout(timeoutWarningRef.current);
+
+            if (error.code === 'auth/popup-closed-by-user') {
+                setError('Login cancelled');
+            } else if (error.message?.includes('network')) {
+                setError('Network error. Please check your connection and try again.');
+            } else {
+                setError('Google login failed. Please try again.');
+            }
         } finally {
             setIsLoading(false);
+            setTimeoutWarning(false);
         }
     };
 
@@ -72,6 +107,11 @@ const LogInPage = () => {
             <div className="login-box">
                 <h1 className="login-title">{isLogin ? 'Login' : 'Create An Account'}</h1>
                 {error && <p className="error-message">{error}</p>}
+                {isLoading && timeoutWarning && (
+                    <p className="timeout-warning" style={{ color: '#ff9800', padding: '10px', textAlign: 'center' }}>
+                        This is taking longer than usual... Your connection may be slow.
+                    </p>
+                )}
                 <form onSubmit={handleSubmit} className="login-form">
                     {!isLogin && (
                         <input

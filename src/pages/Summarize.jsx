@@ -5,6 +5,7 @@ import { collection, getDocs } from 'firebase/firestore';
 import axios from 'axios';
 import '../styles/Summarize.css';
 import { ChevronLeft, ExternalLink } from 'lucide-react';
+import { apiClient, getErrorMessage } from '../utils/apiClient';
 
 const Summarize = () => {
     const [projects, setProjects] = useState([]);
@@ -57,11 +58,15 @@ const Summarize = () => {
         setIsLoading(true);
         setError('');
         try {
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/summarize`, { content: articleContent });
-            setSummary(response.data.summary);
+            const data = await apiClient.longRunningRequest('/api/summarize', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: articleContent })
+            });
+            setSummary(data.summary);
         } catch (error) {
             console.error('Error summarizing article:', error);
-            setError('Error generating summary. Please try again.');
+            setError(getErrorMessage(error));
         }
         setIsLoading(false);
     };

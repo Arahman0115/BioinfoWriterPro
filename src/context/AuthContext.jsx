@@ -5,6 +5,7 @@ import {
 } from 'firebase/auth';
 import { auth, googleProvider, storage } from '../firebase/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { apiClient } from '../utils/apiClient';
 
 const AuthContext = createContext();
 
@@ -33,17 +34,23 @@ export const AuthProvider = ({ children }) => {
 
         const token = await userCredential.user.getIdToken();
 
-        await fetch(`${import.meta.env.VITE_API_URL}/api/init-user`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                name,
-                email
-            })
-        });
+        // Initialize user on backend (non-blocking - user is authenticated via Firebase)
+        try {
+            await apiClient.request('/api/init-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    name,
+                    email
+                })
+            });
+        } catch (error) {
+            console.warn('Backend initialization failed, continuing with Firebase auth:', error.message);
+            // Don't throw - user is still authenticated via Firebase
+        }
 
         return userCredential;
     };
@@ -63,13 +70,14 @@ export const AuthProvider = ({ children }) => {
     };
 
     const googleLogin = async () => {
+        const result = await signInWithPopup(auth, googleProvider);
+        const user = result.user;
+
+        const token = await user.getIdToken();
+
+        // Initialize user on backend (non-blocking - user is authenticated via Firebase)
         try {
-            const result = await signInWithPopup(auth, googleProvider);
-            const user = result.user;
-
-            const token = await user.getIdToken();
-
-            await fetch(`${import.meta.env.VITE_API_URL}/api/init-user`, {
+            await apiClient.request('/api/init-user', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -80,11 +88,12 @@ export const AuthProvider = ({ children }) => {
                     email: user.email
                 })
             });
-
-            console.log('User Info:', user);
         } catch (error) {
-            console.error('Google Sign-In Error:', error);
+            console.warn('Backend initialization failed, continuing with Firebase auth:', error.message);
+            // Don't throw - user is still authenticated via Firebase
         }
+
+        console.log('User Info:', user);
     };
 
     return (

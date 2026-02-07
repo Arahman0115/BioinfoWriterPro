@@ -4,6 +4,7 @@ import styled from 'styled-components';
 import '../styles/FigureExplanation.css';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
+import { apiClient, getErrorMessage } from '../utils/apiClient';
 
 const ExplanationText = styled.div`
   font-family: Arial, sans-serif;
@@ -65,16 +66,15 @@ const FigureExplanation = () => {
             const formData = new FormData();
             formData.append('image', selectedImage);
 
-            const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/explain-figure`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+            const data = await apiClient.longRunningRequest('/api/explain-figure', {
+                method: 'POST',
+                body: formData
             });
 
-            setExplanation(formatExplanation(response.data.explanation));
+            setExplanation(formatExplanation(data.explanation));
         } catch (error) {
             console.error('Error explaining figure:', error);
-            setExplanation('Failed to generate explanation. Please try again.');
+            setExplanation(getErrorMessage(error));
         } finally {
             setLoading(false);
         }
