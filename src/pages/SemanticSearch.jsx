@@ -4,9 +4,13 @@ import { db } from '../firebase/firebase';
 import axios from 'axios';
 import ProjectPopup from '../components/ProjectPopup';
 import { useAuth } from '../context/AuthContext';
-import '../styles/SemanticSearch.css';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { PageHeader } from '../components/layout/PageHeader';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Card, CardContent } from '../components/ui/Card';
+import { Badge } from '../components/ui/Badge';
+import { LoadingLines } from '../components/common/LoadingState';
+import { Loader2, ExternalLink, Plus } from 'lucide-react';
 
 const API_BASE_URL = 'https://api.semanticscholar.org/graph/v1/paper/search';
 const RESULTS_PER_PAGE = 10;
@@ -21,17 +25,18 @@ const SemanticSearch = () => {
     const [showPopup, setShowPopup] = useState(false);
     const [userProjects, setUserProjects] = useState([]);
     const [selectedArticle, setSelectedArticle] = useState(null);
+    const [savingArticle, setSavingArticle] = useState(false);
+    const [saveMessage, setSaveMessage] = useState('');
+    const [saveMessageType, setSaveMessageType] = useState('success');
     const { currentUser } = useAuth();
     const userUid = currentUser?.uid;
-    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchUserProjects = async () => {
             if (userUid) {
                 try {
                     const projectsSnapshot = await getDocs(collection(db, 'users', userUid, 'projects'));
-                    const projects = projectsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                    setUserProjects(projects);
+                    setUserProjects(projectsSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
                 } catch (error) {
                     console.error("Error fetching user projects:", error);
                 }
@@ -45,14 +50,8 @@ const SemanticSearch = () => {
         setError('');
         try {
             const response = await axios.get(API_BASE_URL, {
-                params: {
-                    query: searchTerm,
-                    limit: RESULTS_PER_PAGE,
-                    offset: (page - 1) * RESULTS_PER_PAGE,
-                    fields: 'title,authors,abstract,url,year'
-                }
+                params: { query: searchTerm, limit: RESULTS_PER_PAGE, offset: (page - 1) * RESULTS_PER_PAGE, fields: 'title,authors,abstract,url,year' }
             });
-
             const { data } = response;
             if (data.total > 0) {
                 setTotalResults(data.total);
@@ -70,115 +69,133 @@ const SemanticSearch = () => {
         }
     };
 
-    const handleKeyPress = (event) => {
-        if (event.key === 'Enter') {
-            handleSearch();
-        }
-    };
-
     const addToProject = (article) => {
+        if (userProjects.length === 0) {
+            setSaveMessageType('error');
+            setSaveMessage('Please create a project first to save articles.');
+            setTimeout(() => setSaveMessage(''), 4000);
+            return;
+        }
         setSelectedArticle(article);
         setShowPopup(true);
     };
 
     const handleSelectProject = async (project) => {
-        if (selectedArticle) {
-            try {
-                await addDoc(collection(db, 'users', userUid, 'projects', project.id, 'researcharticles'), {
-                    title: selectedArticle.title,
-                    author: selectedArticle.authors.map(author => author.name).join(', '),
-                    abstract: selectedArticle.abstract || 'No abstract available',
-                    url: selectedArticle.url,
-                    year: selectedArticle.year,
-                    createdAt: new Date()
-                });
-                console.log('Article added to project successfully!');
-            } catch (error) {
-                console.error("Error adding article to project:", error);
-                alert('Failed to add article to project. Please try again.');
-            }
+        if (!selectedArticle || !userUid) {
+            setSaveMessageType('error');
+            setSaveMessage('Failed to save article. Please try again.');
+            setTimeout(() => setSaveMessage(''), 4000);
+            return;
+        }
+
+        setSavingArticle(true);
+        try {
+            await addDoc(collection(db, 'users', userUid, 'projects', project.id, 'researcharticles'), {
+                title: selectedArticle.title,
+                author: selectedArticle.authors.map(author => author.name).join(', '),
+                abstract: selectedArticle.abstract || 'No abstract available',
+                url: selectedArticle.url,
+                year: selectedArticle.year,
+                createdAt: new Date()
+            });
+
+            setSaveMessageType('success');
+            setSaveMessage(`Article saved to "${project.title}"`);
+            setTimeout(() => setSaveMessage(''), 4000);
+        } catch (error) {
+            console.error("Error adding article to project:", error);
+            setSaveMessageType('error');
+            setSaveMessage('Failed to save article. Please check your connection and try again.');
+            setTimeout(() => setSaveMessage(''), 4000);
+        } finally {
+            setSavingArticle(false);
             setShowPopup(false);
         }
     };
 
-    return (
-        <div className="semantic-search-container">
-            <button className="semantic-back-button" onClick={() => navigate('/Homepage')}>
-                <ChevronLeft size={20} />
-            </button>
-            <h1 className="semantic-search-title">Semantic Scholar Search</h1>
+    const totalPages = Math.ceil(totalResults / RESULTS_PER_PAGE);
 
-            <div className="semantic-search-bar">
-                <input
-                    type="text"
+    return (
+        <div>
+            <PageHeader title="Semantic Scholar Search" subtitle="Search academic papers with AI-powered relevance" />
+
+            <div className="flex gap-3 mb-6">
+                <Input
                     placeholder="Search for research articles..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    className="semantic-search-input"
+                    onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                    className="flex-1"
                 />
-                <button
-                    onClick={() => handleSearch()}
-                    disabled={loading}
-                    className="semantic-search-button"
-                >
-                    {loading ? 'Searching...' : 'Search'}
-                </button>
+                <Button onClick={() => handleSearch()} disabled={loading}>
+                    {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                    Search
+                </Button>
             </div>
 
             {error && (
-                <div className="semantic-search-error">
-                    <p>{error}</p>
+                <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 mb-4">
+                    <p className="text-sm text-destructive">{error}</p>
                 </div>
             )}
 
-            <div className="semantic-results-container">
-                {loading && <div className="semantic-loading">Loading...</div>}
-                {results.map((article, index) => (
-                    <div key={index} className="semantic-article-box">
-                        <h3 className="semantic-article-title">{article.title}</h3>
-                        <p className="semantic-article-authors">Author(s): {article.authors.map(author => author.name).join(', ')}</p>
-                        <p className="semantic-article-abstract">{article.abstract || 'No abstract available'}</p>
-                        <p className="semantic-article-year">Year: {article.year || 'N/A'}</p>
-                        <div className="semantic-article-buttons">
+            {saveMessage && (
+                <div className={`rounded-md p-3 mb-4 ${
+                    saveMessageType === 'success'
+                        ? 'bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800'
+                        : 'bg-destructive/10 border border-destructive/20'
+                }`}>
+                    <p className={`text-sm ${
+                        saveMessageType === 'success'
+                            ? 'text-green-700 dark:text-green-300'
+                            : 'text-destructive'
+                    }`}>
+                        {saveMessage}
+                    </p>
+                </div>
+            )}
 
-
-                            <a
-                                href={article.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="semantic-article-link"
-                            >
-                                Read Article
-                            </a>
-                            <button
-                                className='semantic-add-project-btn'
-                                onClick={() => addToProject(article)}
-                            >
-                                Add to Project
-                            </button>
-                        </div>
-                    </div>
+            <div className="space-y-3">
+                {loading && <LoadingLines count={3} />}
+                {!loading && results.map((article, index) => (
+                    <Card key={index}>
+                        <CardContent className="p-4">
+                            <div className="flex items-start justify-between gap-2">
+                                <h3 className="font-medium text-sm text-foreground">{article.title}</h3>
+                                {article.year && <Badge variant="outline" className="shrink-0">{article.year}</Badge>}
+                            </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                {article.authors?.map(author => author.name).join(', ')}
+                            </p>
+                            <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
+                                {article.abstract || 'No abstract available'}
+                            </p>
+                            <div className="flex items-center gap-2 mt-3">
+                                {article.url && (
+                                    <a href={article.url} target="_blank" rel="noopener noreferrer">
+                                        <Button variant="outline" size="sm" className="gap-1.5">
+                                            <ExternalLink className="h-3.5 w-3.5" /> Read
+                                        </Button>
+                                    </a>
+                                )}
+                                <Button variant="ghost" size="sm" className="gap-1.5" onClick={() => addToProject(article)}>
+                                    <Plus className="h-3.5 w-3.5" /> Add to Project
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
                 ))}
             </div>
 
             {totalResults > RESULTS_PER_PAGE && (
-                <div className="semantic-pagination">
-                    <button
-                        onClick={() => handleSearch(currentPage - 1)}
-                        disabled={currentPage === 1 || loading}
-                        className="semantic-pagination-button"
-                    >
+                <div className="flex items-center justify-center gap-4 mt-6">
+                    <Button variant="outline" size="sm" onClick={() => handleSearch(currentPage - 1)} disabled={currentPage === 1 || loading}>
                         Previous
-                    </button>
-                    <span className="semantic-pagination-info">Page {currentPage} of {Math.ceil(totalResults / RESULTS_PER_PAGE)}</span>
-                    <button
-                        onClick={() => handleSearch(currentPage + 1)}
-                        disabled={currentPage * RESULTS_PER_PAGE >= totalResults || loading}
-                        className="semantic-pagination-button"
-                    >
+                    </Button>
+                    <span className="text-sm text-muted-foreground">Page {currentPage} of {totalPages}</span>
+                    <Button variant="outline" size="sm" onClick={() => handleSearch(currentPage + 1)} disabled={currentPage >= totalPages || loading}>
                         Next
-                    </button>
+                    </Button>
                 </div>
             )}
 
@@ -187,6 +204,7 @@ const SemanticSearch = () => {
                     projects={userProjects}
                     onSelectProject={handleSelectProject}
                     onClose={() => setShowPopup(false)}
+                    isLoading={savingArticle}
                 />
             )}
         </div>

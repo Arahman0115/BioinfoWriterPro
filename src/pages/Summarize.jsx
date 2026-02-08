@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { db, auth } from '../firebase/firebase';
+import { db } from '../firebase/firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import axios from 'axios';
-import '../styles/Summarize.css';
-import { ChevronLeft, ExternalLink } from 'lucide-react';
-import { apiClient, getErrorMessage } from '../utils/apiClient';
+import { useAuth } from '../context/AuthContext';
+import { PageHeader } from '../components/layout/PageHeader';
+import { Button } from '../components/ui/Button';
+import { Textarea } from '../components/ui/Textarea';
+import { Card, CardContent } from '../components/ui/Card';
+import { ExternalLink, ChevronRight, ChevronDown } from 'lucide-react';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/firebase';
 
 const Summarize = () => {
+    const { currentUser } = useAuth();
     const [projects, setProjects] = useState([]);
     const [selectedProject, setSelectedProject] = useState(null);
     const [selectedArticle, setSelectedArticle] = useState(null);
@@ -15,30 +19,28 @@ const Summarize = () => {
     const [summary, setSummary] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const navigate = useNavigate();
+    const [expandedProjectId, setExpandedProjectId] = useState(null);
 
     useEffect(() => {
         const fetchProjects = async () => {
-            const user = auth.currentUser;
-            if (user) {
-                const projectsCollection = collection(db, `users/${user.uid}/projects`);
-                const projectsSnapshot = await getDocs(projectsCollection);
-                const projectsList = await Promise.all(projectsSnapshot.docs.map(async (doc) => {
-                    const project = { id: doc.id, ...doc.data() };
-                    const articlesCollection = collection(db, `users/${user.uid}/projects/${doc.id}/researcharticles`);
-                    const articlesSnapshot = await getDocs(articlesCollection);
-                    project.articles = articlesSnapshot.docs.map(articleDoc => ({
-                        id: articleDoc.id,
-                        ...articleDoc.data()
-                    }));
-                    return project;
+            if (!currentUser?.uid) return;
+            const projectsCollection = collection(db, `users/${currentUser.uid}/projects`);
+            const projectsSnapshot = await getDocs(projectsCollection);
+            const projectsList = await Promise.all(projectsSnapshot.docs.map(async (doc) => {
+                const project = { id: doc.id, ...doc.data() };
+                const articlesCollection = collection(db, `users/${currentUser.uid}/projects/${doc.id}/researcharticles`);
+                const articlesSnapshot = await getDocs(articlesCollection);
+                project.articles = articlesSnapshot.docs.map(articleDoc => ({
+                    id: articleDoc.id,
+                    ...articleDoc.data()
                 }));
-                setProjects(projectsList);
-            }
+                return project;
+            }));
+            setProjects(projectsList);
         };
 
         fetchProjects();
-    }, []);
+    }, [currentUser?.uid]);
 
     const handleProjectClick = (project) => {
         setSelectedProject(project);
@@ -58,76 +60,119 @@ const Summarize = () => {
         setIsLoading(true);
         setError('');
         try {
-            const data = await apiClient.longRunningRequest('/api/summarize', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: articleContent })
-            });
+            const { data } = await httpsCallable(functions, 'summarize', { timeout: 120000 })({ content: articleContent });
             setSummary(data.summary);
         } catch (error) {
             console.error('Error summarizing article:', error);
-            setError(getErrorMessage(error));
+            setError(error.message || 'Failed to summarize. Please try again.');
         }
         setIsLoading(false);
     };
 
     return (
-        <div className="summarize-container">
-            <button className="summarize-back-button" onClick={() => navigate('/homepage')}>
-                <ChevronLeft size={20} />
-            </button>
-            <h1>Summarize Article</h1>
-            <div className="summarize-layout">
-                <div className="file-hierarchy">
-                    <h2>Projects</h2>
-                    <ul>
-                        {projects.map((project) => (
-                            <li key={project.id} className={selectedProject?.id === project.id ? 'selected' : ''}>
-                                <span onClick={() => handleProjectClick(project)}>{project.title}</span>
-                                {selectedProject && selectedProject.id === project.id && (
-                                    <ul>
-                                        {project.articles.map((article) => (
-                                            <li
-                                                key={article.id}
-                                                className={`article-item ${selectedArticle?.id === article.id ? 'selected' : ''}`}
-                                            >
-                                                <span onClick={() => handleArticleClick(article)}>
-                                                    {article.title}
-                                                </span>
-                                                {article.url && (
-                                                    <a
-                                                        href={article.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="article-link"
-                                                        onClick={(e) => e.stopPropagation()}
+        <div>
+            <PageHeader
+                title="Summarize Article"
+                subtitle="Extract key insights from research articles"
+            />
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Projects sidebar */}
+                <Card className="lg:col-span-1 h-fit">
+                    <CardContent className="p-4">
+                        <h2 className="text-sm font-medium text-foreground mb-3">Projects</h2>
+                        <div className="space-y-1">
+                            {projects.length === 0 ? (
+                                <p className="text-sm text-muted-foreground">No projects yet</p>
+                            ) : (
+                                projects.map((project) => (
+                                    <div key={project.id}>
+                                        <button
+                                            onClick={() => {
+                                                handleProjectClick(project);
+                                                setExpandedProjectId(expandedProjectId === project.id ? null : project.id);
+                                            }}
+                                            className={`w-full text-left px-2 py-1.5 rounded text-sm font-medium transition-colors flex items-center gap-2 ${
+                                                selectedProject?.id === project.id
+                                                    ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-100'
+                                                    : 'hover:bg-muted text-foreground'
+                                            }`}
+                                        >
+                                            {expandedProjectId === project.id ? (
+                                                <ChevronDown className="h-4 w-4 shrink-0" />
+                                            ) : (
+                                                <ChevronRight className="h-4 w-4 shrink-0" />
+                                            )}
+                                            <span className="truncate">{project.title}</span>
+                                        </button>
+                                        {expandedProjectId === project.id && project.articles && (
+                                            <div className="ml-2 mt-1 space-y-1 border-l border-border pl-2">
+                                                {project.articles.map((article) => (
+                                                    <button
+                                                        key={article.id}
+                                                        onClick={() => handleArticleClick(article)}
+                                                        className={`w-full text-left px-2 py-1 rounded text-xs transition-colors flex items-center gap-2 ${
+                                                            selectedArticle?.id === article.id
+                                                                ? 'bg-indigo-100 text-indigo-900 dark:bg-indigo-950 dark:text-indigo-100'
+                                                                : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                                                        }`}
                                                     >
-                                                        <ExternalLink size={16} />
-                                                    </a>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-                <div className="content-area">
-                    <textarea
-                        value={articleContent}
-                        onChange={handleContentChange}
-                        placeholder="Paste your article content here..."
-                    />
-                    <button onClick={handleSummarize} disabled={isLoading || !articleContent.trim()}>
-                        {isLoading ? 'Summarizing...' : 'Summarize'}
-                    </button>
-                    {error && <p className="error-message">{error}</p>}
-                    {summary && (
-                        <div className="summary-result">
-                            <h3>Summary:</h3>
-                            <p>{summary}</p>
+                                                        <span className="truncate flex-1">{article.title}</span>
+                                                        {article.url && (
+                                                            <a
+                                                                href={article.url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                className="shrink-0 hover:text-indigo-600 dark:hover:text-indigo-400"
+                                                            >
+                                                                <ExternalLink className="h-3 w-3" />
+                                                            </a>
+                                                        )}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                ))
+                            )}
                         </div>
+                    </CardContent>
+                </Card>
+
+                {/* Content area */}
+                <div className="lg:col-span-2 space-y-4">
+                    <Card>
+                        <CardContent className="p-4 space-y-3">
+                            <Textarea
+                                value={articleContent}
+                                onChange={handleContentChange}
+                                placeholder="Paste your article content here..."
+                                className="min-h-[200px] font-mono text-sm"
+                            />
+                            <Button
+                                onClick={handleSummarize}
+                                disabled={isLoading || !articleContent.trim()}
+                                className="w-full"
+                            >
+                                {isLoading ? 'Summarizing...' : 'Summarize'}
+                            </Button>
+                        </CardContent>
+                    </Card>
+
+                    {error && (
+                        <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3">
+                            <p className="text-sm text-destructive">{error}</p>
+                        </div>
+                    )}
+
+                    {summary && (
+                        <Card>
+                            <CardContent className="p-4">
+                                <h3 className="text-sm font-medium text-foreground mb-3">Summary</h3>
+                                <p className="text-sm text-foreground leading-relaxed">{summary}</p>
+                            </CardContent>
+                        </Card>
                     )}
                 </div>
             </div>

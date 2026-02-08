@@ -1,46 +1,16 @@
 import React, { useState } from 'react';
-import axios from 'axios';
-import styled from 'styled-components';
-import '../styles/FigureExplanation.css';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
-import { apiClient, getErrorMessage } from '../utils/apiClient';
-
-const ExplanationText = styled.div`
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
-  color: #e0e0e0;
-
-  h1, h2, h3, h4, h5, h6 {
-    color: #ffffff;
-    margin-top: 20px;
-    margin-bottom: 10px;
-  }
-
-  p {
-    margin-bottom: 15px;
-  }
-
-  ul, ol {
-    margin-bottom: 15px;
-    padding-left: 20px;
-  }
-
-  li {
-    margin-bottom: 5px;
-  }
-
-  strong {
-    color: #46ad69;
-  }
-`;
+import { PageHeader } from '../components/layout/PageHeader';
+import { Button } from '../components/ui/Button';
+import { Card, CardContent } from '../components/ui/Card';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/firebase';
+import { Upload, Loader2 } from 'lucide-react';
 
 const FigureExplanation = () => {
     const [selectedImage, setSelectedImage] = useState(null);
     const [imagePreview, setImagePreview] = useState(null);
     const [explanation, setExplanation] = useState('');
     const [loading, setLoading] = useState(false);
-    const navigate = useNavigate();
     const handleImageChange = (e) => {
         const file = e.target.files[0];
         if (file) {
@@ -63,18 +33,23 @@ const FigureExplanation = () => {
         setExplanation('');
 
         try {
-            const formData = new FormData();
-            formData.append('image', selectedImage);
+            // Read file as base64 for onCall (no multipart needed)
+            const imageBase64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result.split(',')[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(selectedImage);
+            });
 
-            const data = await apiClient.longRunningRequest('/api/explain-figure', {
-                method: 'POST',
-                body: formData
+            const { data } = await httpsCallable(functions, 'explainFigure', { timeout: 120000 })({
+                imageBase64,
+                mimeType: selectedImage.type
             });
 
             setExplanation(formatExplanation(data.explanation));
         } catch (error) {
             console.error('Error explaining figure:', error);
-            setExplanation(getErrorMessage(error));
+            setExplanation(error.message || 'Failed to explain figure. Please try again.');
         } finally {
             setLoading(false);
         }
@@ -100,39 +75,55 @@ const FigureExplanation = () => {
     };
 
     return (
-        <div className="figure-explanation-container">
-            <button onClick={() => navigate('/homepage')} className="figure-explanation-back-button">
-                <ChevronLeft size={20} />
-            </button>
-            <h1>Figure Explanation</h1>
-            <div className="image-upload-section">
-                <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleImageChange}
-                    id="image-upload"
-                />
-                <label htmlFor="image-upload" className="upload-button">
-                    Select Image
-                </label>
-                {imagePreview && (
-                    <div className="image-preview">
-                        <img src={imagePreview} alt="Selected figure" />
+        <div>
+            <PageHeader
+                title="Figure Explanation"
+                subtitle="Upload an image and get an AI-powered explanation"
+            />
+
+            <Card className="mb-6">
+                <CardContent className="p-4 space-y-4">
+                    <div className="border-2 border-dashed border-border rounded-lg p-8 text-center bg-muted/50">
+                        <label htmlFor="image-upload" className="cursor-pointer flex flex-col items-center gap-2">
+                            <Upload className="h-8 w-8 text-muted-foreground" />
+                            <span className="text-sm font-medium text-foreground">Select Figure Image</span>
+                            <span className="text-xs text-muted-foreground">PNG, JPG, or other image formats</span>
+                        </label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            id="image-upload"
+                            className="hidden"
+                        />
                     </div>
-                )}
-            </div>
-            <button
-                onClick={handleExplain}
-                disabled={!selectedImage || loading}
-                className="explain-button"
-            >
-                {loading ? 'Explaining...' : 'Explain Figure'}
-            </button>
+
+                    {imagePreview && (
+                        <div className="border border-border rounded-lg overflow-hidden bg-background">
+                            <img src={imagePreview} alt="Selected figure" className="w-full max-h-96 object-contain" />
+                        </div>
+                    )}
+
+                    <Button
+                        onClick={handleExplain}
+                        disabled={!selectedImage || loading}
+                        className="w-full"
+                    >
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                        {loading ? 'Explaining Figure...' : 'Explain Figure'}
+                    </Button>
+                </CardContent>
+            </Card>
+
             {explanation && (
-                <div className="explanation-box">
-                    <h2>Explanation:</h2>
-                    <ExplanationText dangerouslySetInnerHTML={{ __html: explanation }} />
-                </div>
+                <Card>
+                    <CardContent className="p-4">
+                        <h2 className="text-sm font-medium text-foreground mb-3">Explanation</h2>
+                        <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
+                            <div dangerouslySetInnerHTML={{ __html: explanation }} />
+                        </div>
+                    </CardContent>
+                </Card>
             )}
         </div>
     );

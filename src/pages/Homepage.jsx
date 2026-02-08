@@ -1,106 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import '../styles/HomePage.css';
-import homeIcon from '../assets/home-icon.jpg';
-import { auth, db } from '../firebase/firebase'; // Adjust the path based on your project structure
-import { collection, getDocs, addDoc, deleteDoc, doc } from 'firebase/firestore';
-import { useAuth } from '../context/AuthContext'; // Import the useAuth hook
-import Spinner from '../components/Spinner';
-import UserDropdown from '../components/UserDropdown';
-import writerlogo from '../assets/writerlogo.webp';
-import wbg from '../assets/wbg.png';
-import deoxy from '../assets/deoxy.png';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { useNavigate } from 'react-router-dom';
+import { db } from '../firebase/firebase';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { useAuth } from '../context/AuthContext';
+import { logFirebaseOperation, logFirebaseError, getFirebaseErrorMessage } from '../utils/firebaseDebug';
+import { PageHeader } from '../components/layout/PageHeader';
+import { Card, CardContent } from '../components/ui/Card';
+import { Button } from '../components/ui/Button';
+import { Input } from '../components/ui/Input';
+import { Dialog } from '../components/ui/Dialog';
+import { EmptyState } from '../components/common/EmptyState';
+import { LoadingState } from '../components/common/LoadingState';
+import {
+  PenLine, Search, Database, BookOpen, Image, FileText,
+  MoreVertical, Trash2, FileIcon
+} from 'lucide-react';
 
-
+const quickActions = [
+  { name: 'New Document', icon: PenLine, path: '/writer', state: { project: { title: '', sections: { Template: { content: '' } } } } },
+  { name: 'PubMed Search', icon: Search, path: '/research' },
+  { name: 'GenBank', icon: Database, path: '/genbank-search' },
+  { name: 'Semantic Search', icon: BookOpen, path: '/semantic-search' },
+  { name: 'Figure Explanation', icon: Image, path: '/figure-explanation' },
+  { name: 'Summarize', icon: FileText, path: '/summarize' },
+];
 
 const HomePage = () => {
   const navigate = useNavigate();
-  const { currentUser } = useAuth(); // Access currentUser from AuthContext
+  const { currentUser } = useAuth();
   const [searchTerm, setSearchTerm] = useState('');
   const [projects, setProjects] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [deleteIndex, setDeleteIndex] = useState(null);
-  const [feedbackMessage, setFeedbackMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [activeDropdown, setActiveDropdown] = useState(null);
 
-  // Load projects from Firestore and handle potential errors
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const user = auth.currentUser;
-        if (user) {
-          const projectsCollection = collection(db, `users/${user.uid}/projects`);
-          const snapshot = await getDocs(projectsCollection);
-          const fetchedProjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setProjects(fetchedProjects);
-        } else {
-          setProjects([]); // No user signed in
+        if (!currentUser?.uid) {
+          logFirebaseOperation('loadProjects', { status: 'skipped', reason: 'no user' });
+          setProjects([]);
+          return;
         }
+
+        const projectsCollection = collection(db, `users/${currentUser.uid}/projects`);
+        logFirebaseOperation('loadProjects', {
+          userId: currentUser.uid,
+          collectionPath: `users/${currentUser.uid}/projects`
+        });
+
+        const snapshot = await getDocs(projectsCollection);
+        const fetchedProjects = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        logFirebaseOperation('loadProjects-success', {
+          count: fetchedProjects.length,
+          projects: fetchedProjects.map(p => ({ id: p.id, title: p.title }))
+        });
+
+        setProjects(fetchedProjects);
       } catch (error) {
-        console.error('Error loading projects from Firestore:', error);
+        logFirebaseError('loadProjects', error);
+        console.error('❌ FIREBASE ERROR:', {
+          code: error.code,
+          message: error.message,
+          friendlyMessage: getFirebaseErrorMessage(error)
+        });
         setProjects([]);
       } finally {
-        setTimeout(() => setLoading(false), 500); // Delay for 2 seconds before setting loading to false
+        setLoading(false);
       }
     };
-
     loadProjects();
-  }, []);
+  }, [currentUser?.uid]);
 
   const handleProjectClick = (project) => {
     navigate('/writer', { state: { project } });
   };
-  const handleResearchClick = () => {
-    navigate('/research');
-  };
-  const handleNewProjectClick = () => {
-    console.log("New Project button clicked");
-
-    // Navigate to writer without creating a new document in Firestore
-    navigate('/writer', { state: { project: { title: '', sections: { Template: { content: '' } } } } });
-  };
-  const handleResearchCrossClick = () => {
-    navigate('/research-cross');
-  };
-  const handleGeneralSearchClick = () => {
-    navigate('/general-search');
-  };
-  const handleGenBankClick = () => {
-    navigate('/genbank-search');
-  };
-
-  const handleFigureExplanationClick = () => {
-    navigate('/figure-explanation');
-  };
-  const handleSemanticSearchClick = () => {
-    navigate('/semantic-search');
-  };
-  const handleSummarizeClick = () => {
-    navigate('/summarize');
-  };
-
-  const handleDeleteClick = (index) => {
-    setDeleteIndex(index);
-    setIsModalOpen(true);
-  };
 
   const handleConfirmDelete = async () => {
     const projectToDelete = projects[deleteIndex];
-    const user = auth.currentUser;
-    if (user) {
-      await deleteDoc(doc(db, `users/${user.uid}/projects`, projectToDelete.id));
-      const updatedProjects = projects.filter((_, index) => index !== deleteIndex);
-      setProjects(updatedProjects);
+    if (currentUser?.uid) {
+      await deleteDoc(doc(db, `users/${currentUser.uid}/projects`, projectToDelete.id));
+      setProjects(projects.filter((_, index) => index !== deleteIndex));
       setIsModalOpen(false);
-
-      setTimeout(() => setFeedbackMessage(''), 5000);
     }
-  };
-
-  const handleCancelDelete = () => {
-    setIsModalOpen(false);
   };
 
   const handleEllipsisClick = (e, index) => {
@@ -119,136 +103,124 @@ const HomePage = () => {
     project.title.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const templateData = [
-    {
-      name: "Blank Document",
-      onClick: handleNewProjectClick,
-    },
-    {
-      name: "Research with PubMed",
-      onClick: handleResearchClick,
-    },
-    {
-      name: "General Search",
-      onClick: handleGeneralSearchClick,
-    },
-    {
-      name: "Search GenBank",
-      onClick: handleGenBankClick,
-    },
-
-    {
-      name: "Figure Explanation",
-      onClick: handleFigureExplanationClick,
-    },
-    {
-      name: "Semantic Search",
-      onClick: handleSemanticSearchClick,
-    },
-    {
-      name: "Summarize",
-      onClick: handleSummarizeClick,
-    }
-    // Add more templates as needed
-  ];
+  const displayName = currentUser?.displayName || currentUser?.email || 'User';
 
   return (
-    <div className="homepage-container">
-      <header className="navbar">
-        <div className='titlelogo'>
-          <img src={deoxy} alt="Home" className="home-icon1" />
-          <h1 className='writerprotitle'>BioScribe</h1>
-        </div>
-
-        <div className="navbar-middle">
-          <Link to="/tools" className="tools-link">Analysis Tools</Link>
-          <input
-            type="text"
-            className="search-bar"
+    <div>
+      <PageHeader
+        title="Home"
+        subtitle={`Welcome back, ${displayName}`}
+        actions={
+          <Input
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-64"
           />
+        }
+      />
 
-        </div>
-
-        <div className="navbar-right">
-          <div className="usernamebox">
-            <span className="user-name"><span>Welcome, </span>{currentUser?.displayName || currentUser?.email}</span>
-          </div>
-          <UserDropdown />
-        </div>
-      </header>
-
-      {feedbackMessage && <div className="feedback-message">{feedbackMessage}</div>}
-
-      <section className="template-section">
-        <div className="template-grid">
-          {templateData.map((template, index) => (
-            <div
-              key={index}
-              className="template-card"
-              onClick={template.onClick}
-            >
-              <h3>{template.name}</h3>
-            </div>
-          ))}
+      {/* Quick Actions */}
+      <section className="mb-8">
+        <h2 className="text-sm font-medium text-muted-foreground mb-3">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={action.name}
+                onClick={() => navigate(action.path, action.state ? { state: action.state } : undefined)}
+                className="flex flex-col items-center gap-2 rounded-xl border border-border bg-card p-4 text-center transition-colors hover:border-indigo-300 hover:bg-indigo-50/50 dark:hover:bg-indigo-950/50 cursor-pointer"
+              >
+                <div className="rounded-lg bg-indigo-50 dark:bg-indigo-950 p-2">
+                  <Icon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+                </div>
+                <span className="text-xs font-medium text-foreground">{action.name}</span>
+              </button>
+            );
+          })}
         </div>
       </section>
 
-      <section className="recent-documents-section">
-        <div className="recent-documents-header">
-          <h2>Recent Documents</h2>
-        </div>
-        <div className="recent-documents-content">
-          <div className="projects-grid">
-            {loading ? (
-              <div className="spinner-container">
-                <Spinner />
-              </div>
-            ) : filteredProjects.length === 0 ? (
-              <p>No projects found. Click "New Blank Document" to create a new project.</p>
-            ) : (
-              filteredProjects.map((project, index) => (
-                <div key={project.id} className="project-card" onClick={() => handleProjectClick(project)}>
-                  <p>
-                    {project.sections?.Template?.content
-                      ? project.sections.Template.content.slice(0, 500)
-                      : "No content available"}
-                    ...
-                  </p>
-                  <div className="bottom-doc">
-                    <div className="bottom-doc-content">
-                      <h2>{project.title || 'Untitled Project'}</h2>
-                      <p>Last edited: {new Date(project.lastEdited).toLocaleDateString()}</p>
+      {/* Recent Documents */}
+      <section>
+        <h2 className="text-sm font-medium text-muted-foreground mb-3">Recent Documents</h2>
+        {loading ? (
+          <LoadingState count={6} />
+        ) : filteredProjects.length === 0 ? (
+          <EmptyState
+            icon={FileIcon}
+            title="No projects found"
+            description="Create a new document to get started"
+            actionLabel="New Document"
+            onAction={() => navigate('/writer', { state: { project: { title: '', sections: { Template: { content: '' } } } } })}
+          />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredProjects.map((project, index) => (
+              <Card
+                key={project.id}
+                className="cursor-pointer transition-colors hover:border-indigo-300"
+                onClick={() => handleProjectClick(project)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start justify-between">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-medium text-sm truncate text-foreground">
+                        {project.title || 'Untitled Project'}
+                      </h3>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {project.lastEdited
+                          ? new Date(project.lastEdited).toLocaleDateString()
+                          : 'No date'}
+                      </p>
                     </div>
-                    <div className="dropdown-container">
-                      <button className="ellipsis-button" onClick={(e) => handleEllipsisClick(e, index)}>
-                        <MoreVertIcon />
+                    <div className="relative shrink-0 ml-2">
+                      <button
+                        onClick={(e) => handleEllipsisClick(e, index)}
+                        className="p-1 rounded-md hover:bg-accent text-muted-foreground"
+                      >
+                        <MoreVertical className="h-4 w-4" />
                       </button>
-                      <div className="dropdown-menu">
-                        <button onClick={(e) => handleDeleteOption(e, index)}>Delete</button>
-                        {/* Add more options here as needed */}
-                      </div>
+                      {activeDropdown === index && (
+                        <div className="absolute right-0 top-8 z-10 w-32 rounded-md border border-border bg-popover shadow-md py-1">
+                          <button
+                            onClick={(e) => handleDeleteOption(e, index)}
+                            className="flex items-center gap-2 w-full px-3 py-1.5 text-sm text-destructive hover:bg-accent"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
-              ))
-            )}
+                  <p className="mt-3 text-xs text-muted-foreground line-clamp-2">
+                    {project.sections?.Template?.content
+                      ? project.sections.Template.content.slice(0, 200)
+                      : 'No content available'}
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-        </div>
+        )}
       </section>
 
-      {isModalOpen && (
-        <div className="modal-overlay">
-          <div className="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-            <h2 id="modal-title">Confirm Delete</h2>
-            <p>Are you sure you want to delete this project?</p>
-            <button className="confirm-btn" onClick={handleConfirmDelete}>Yes, Delete</button>
-            <button className="cancel-btn" onClick={handleCancelDelete}>Cancel</button>
-          </div>
-        </div>
-      )}
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Confirm Delete"
+        footer={
+          <>
+            <Button variant="outline" onClick={() => setIsModalOpen(false)}>Cancel</Button>
+            <Button variant="destructive" onClick={handleConfirmDelete}>Delete</Button>
+          </>
+        }
+      >
+        <p>Are you sure you want to delete this project? This action cannot be undone.</p>
+      </Dialog>
     </div>
   );
 };

@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import axios from 'axios';
 import PhyloCanvas from 'phylocanvas';
-import '../styles/Phylo.css';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
-import { apiClient, getErrorMessage } from '../utils/apiClient';
+import { PageHeader } from '../components/layout/PageHeader';
+import { Button } from '../components/ui/Button';
+import { Textarea } from '../components/ui/Textarea';
+import { Card, CardContent } from '../components/ui/Card';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/firebase';
+import { Loader2 } from 'lucide-react';
 
 const Phylo = () => {
     const [sequences, setSequences] = useState('');
@@ -12,7 +14,6 @@ const Phylo = () => {
     const [tree, setTree] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-    const navigate = useNavigate();
     const treeContainer = useRef(null);
     const phylocanvas = useRef(null);
 
@@ -42,15 +43,11 @@ const Phylo = () => {
 
             console.log('Formatted sequences:', formattedSequences); // For debugging
 
-            const data = await apiClient.longRunningRequest('/api/align', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sequences: formattedSequences })
-            });
+            const { data } = await httpsCallable(functions, 'align', { timeout: 300000 })({ sequences: formattedSequences });
             setAlignedSequences(data.alignedSequences);
             console.log('Aligned sequences:', data.alignedSequences);
         } catch (err) {
-            setError(getErrorMessage(err));
+            setError(err.message || 'Alignment failed. Please try again.');
             console.error('Alignment error:', err);
         }
         setLoading(false);
@@ -60,15 +57,11 @@ const Phylo = () => {
         setLoading(true);
         setError('');
         try {
-            const data = await apiClient.longRunningRequest('/api/construct-tree', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ sequences: alignedSequences || sequences })
-            });
+            const { data } = await httpsCallable(functions, 'constructTree', { timeout: 300000 })({ sequences: alignedSequences || sequences });
             console.log('Received tree data:', data.tree);
             setTree(data.tree);
         } catch (err) {
-            setError(getErrorMessage(err));
+            setError(err.message || 'Tree construction failed. Please try again.');
             console.error('Tree construction error:', err);
         }
         setLoading(false);
@@ -138,35 +131,68 @@ const Phylo = () => {
     }, [tree, handleResize]);
 
     return (
-        <div className="phylo-container">
-            <button onClick={() => navigate('/tools')}><ChevronLeft size={20} /> </button>
-            <h1>Phylogenetic Analysis</h1>
-            <textarea
-                value={sequences}
-                onChange={handleSequenceInput}
-                placeholder="Enter sequences here (FASTA format)"
-                rows="10"
-                style={{ whiteSpace: 'pre', overflowWrap: 'normal', overflowX: 'auto' }}
+        <div>
+            <PageHeader
+                title="Phylogenetic Analysis"
+                subtitle="Align sequences and construct evolutionary trees"
             />
-            <button onClick={handleAlignment} disabled={loading || !sequences}>
-                Align Sequences
-            </button>
-            <button onClick={handleTreeConstruction} disabled={loading || !sequences}>
-                Construct Tree
-            </button>
-            {loading && <p>Processing...</p>}
-            {error && <p className="error">{error}</p>}
-            {alignedSequences && (
-                <div className="aligned-sequences">
-                    <h2>Aligned Sequences</h2>
-                    <pre>{alignedSequences}</pre>
+
+            <Card className="mb-6">
+                <CardContent className="p-4 space-y-4">
+                    <Textarea
+                        value={sequences}
+                        onChange={handleSequenceInput}
+                        placeholder="Enter sequences here (FASTA format)"
+                        className="min-h-[200px] font-mono text-sm"
+                    />
+                    <div className="flex gap-3">
+                        <Button
+                            onClick={handleAlignment}
+                            disabled={loading || !sequences}
+                        >
+                            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            Align Sequences
+                        </Button>
+                        <Button
+                            onClick={handleTreeConstruction}
+                            disabled={loading || !sequences}
+                            variant="secondary"
+                        >
+                            {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            Construct Tree
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
+            {error && (
+                <div className="rounded-md bg-destructive/10 border border-destructive/20 p-3 mb-4">
+                    <p className="text-sm text-destructive">{error}</p>
                 </div>
             )}
+
+            {alignedSequences && (
+                <Card className="mb-6">
+                    <CardContent className="p-4">
+                        <h2 className="text-sm font-medium text-foreground mb-3">Aligned Sequences</h2>
+                        <pre className="font-mono text-sm bg-muted p-4 rounded-lg overflow-x-auto text-foreground">
+                            {alignedSequences}
+                        </pre>
+                    </CardContent>
+                </Card>
+            )}
+
             {tree && (
-                <div className="phylogenetic-tree">
-                    <h2>Phylogenetic Tree</h2>
-                    <div id="tree-container" ref={treeContainer}></div>
-                </div>
+                <Card>
+                    <CardContent className="p-4">
+                        <h2 className="text-sm font-medium text-foreground mb-3">Phylogenetic Tree</h2>
+                        <div
+                            ref={treeContainer}
+                            className="w-full border border-border rounded-lg bg-background"
+                            style={{ minHeight: '600px' }}
+                        />
+                    </CardContent>
+                </Card>
             )}
         </div>
     );

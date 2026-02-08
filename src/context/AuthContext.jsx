@@ -3,9 +3,9 @@ import {
     onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword,
     signInWithPopup, updateProfile
 } from 'firebase/auth';
-import { auth, googleProvider, storage } from '../firebase/firebase';
+import { auth, googleProvider, storage, functions } from '../firebase/firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { apiClient } from '../utils/apiClient';
+import { httpsCallable } from 'firebase/functions';
 
 const AuthContext = createContext();
 
@@ -32,24 +32,10 @@ export const AuthProvider = ({ children }) => {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(userCredential.user, { displayName: name });
 
-        const token = await userCredential.user.getIdToken();
-
-        // Initialize user on backend (non-blocking - user is authenticated via Firebase)
         try {
-            await apiClient.request('/api/init-user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    name,
-                    email
-                })
-            });
+            await httpsCallable(functions, 'initUser')({ name, email });
         } catch (error) {
             console.warn('Backend initialization failed, continuing with Firebase auth:', error.message);
-            // Don't throw - user is still authenticated via Firebase
         }
 
         return userCredential;
@@ -73,27 +59,11 @@ export const AuthProvider = ({ children }) => {
         const result = await signInWithPopup(auth, googleProvider);
         const user = result.user;
 
-        const token = await user.getIdToken();
-
-        // Initialize user on backend (non-blocking - user is authenticated via Firebase)
         try {
-            await apiClient.request('/api/init-user', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    name: user.displayName,
-                    email: user.email
-                })
-            });
+            await httpsCallable(functions, 'initUser')({ name: user.displayName, email: user.email });
         } catch (error) {
             console.warn('Backend initialization failed, continuing with Firebase auth:', error.message);
-            // Don't throw - user is still authenticated via Firebase
         }
-
-        console.log('User Info:', user);
     };
 
     return (

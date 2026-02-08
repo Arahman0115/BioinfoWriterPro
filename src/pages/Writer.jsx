@@ -1,22 +1,26 @@
 import 'global';
-// --- FIX: Import useCallback ---
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import '../styles/Writer.css';
-import Toolbar from '../components/Toolbar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { db, auth } from '../firebase/firebase';
+import { useAuth } from '../context/AuthContext';
 import { collection, getDocs } from 'firebase/firestore';
 import { saveAs } from 'file-saver';
 import { Document, Packer, Paragraph } from 'docx';
 import { saveContent } from '../utils/contentManager';
 import { Editor, EditorState, ContentState, Modifier, CompositeDecorator, getDefaultKeyBinding } from 'draft-js';
 import 'draft-js/dist/Draft.css';
-import Spinner from '../components/Spinner';
 import GoogleDocsWriter from './GoogleDocsWriter';
-import { apiClient, getErrorMessage } from '../utils/apiClient';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase/firebase';
+import { Button } from '../components/ui/Button';
+import { cn } from '../utils/cn';
+import {
+  Save, Download, FileDown, BookOpen, Quote, Plus, X,
+  GripVertical, Loader2, History, Sparkles, SparkleIcon,
+  PanelRightOpen, PanelRightClose
+} from 'lucide-react';
 
-// Helper function for MLA citation format
 const formatCitation = (article) => {
   let citation = '';
   if (article.author) citation += `${article.author}. `;
@@ -37,12 +41,10 @@ const debounce = (func, delay) => {
 };
 
 const Writer = () => {
-  // --- HOOKS ---
   const navigate = useNavigate();
   const location = useLocation();
-  const user = auth.currentUser;
+  const { currentUser: user } = useAuth();
 
-  // State Hooks
   const [currentProject, setCurrentProject] = useState(location.state?.project);
   const [title, setTitle] = useState('');
   const [isTitleSet, setIsTitleSet] = useState(false);
@@ -63,12 +65,10 @@ const Writer = () => {
   const [userWantsTextPrediction, setUserWantsTextPrediction] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Ref Hooks
   const suggestionTimeoutRef = useRef(null);
   const saveTimeoutRef = useRef(null);
-  const lastSaveContentRef = useRef(null); // Track last saved content to prevent duplicate saves
+  const lastSaveContentRef = useRef(null);
 
-  // Decorator setup for Draft.js
   const triggerWordStrategy = (contentBlock, callback) => {
     const text = contentBlock.getText();
     const regex = /@(template|summarize)\b/gi;
@@ -78,63 +78,46 @@ const Writer = () => {
       callback(start, start + matchArr[0].length);
     }
   };
-  const TriggerWordSpan = (props) => <span className="styled-block">{props.children}</span>;
+  const TriggerWordSpan = (props) => (
+    <span className="bg-indigo-100 dark:bg-indigo-900 rounded px-0.5">{props.children}</span>
+  );
   const decorator = new CompositeDecorator([{ strategy: triggerWordStrategy, component: TriggerWordSpan }]);
 
   const debouncedSaveContent = useCallback(debounce(async (contentToSave, currentSectionOrder, currentTitle, currentArticles) => {
     if (isSaving) return;
-
-    // Create a hash of the content to compare with last save
-    const contentHash = JSON.stringify({
-      content: contentToSave,
-      sectionOrder: currentSectionOrder,
-      title: currentTitle,
-      articles: currentArticles
-    });
-
-    // Don't save if content hasn't changed
-    if (lastSaveContentRef.current === contentHash) {
-      return;
-    }
+    const contentHash = JSON.stringify({ content: contentToSave, sectionOrder: currentSectionOrder, title: currentTitle, articles: currentArticles });
+    if (lastSaveContentRef.current === contentHash) return;
 
     setIsSaving(true);
     setFeedbackMessage('Saving...');
-
     try {
       const result = await saveContent(user, currentProject, contentToSave, currentSectionOrder, currentTitle, currentArticles);
-
       if (result?.isNew) {
         const newProjectData = { id: result.id, title: currentTitle, sections: contentToSave, sectionOrder: currentSectionOrder, articles: currentArticles };
         setCurrentProject(newProjectData);
         window.history.replaceState({ ...window.history.state, usr: { ...(window.history.state.usr || {}), project: newProjectData }}, '');
       }
-
-      lastSaveContentRef.current = contentHash; // Update last saved content hash
+      lastSaveContentRef.current = contentHash;
       setFeedbackMessage('Saved');
       setTimeout(() => setFeedbackMessage(''), 2000);
     } catch (error) {
       console.error('Error saving content:', error);
-      setFeedbackMessage('Error saving content');
+      setFeedbackMessage('Error saving');
       setTimeout(() => setFeedbackMessage(''), 3000);
     } finally {
       setIsSaving(false);
     }
   }, 3000), [user, currentProject, isSaving]);
 
-  // Effect for fetching initial project data from location state
   useEffect(() => {
     const projectFromLocation = location.state?.project;
-    console.log('Project from location:', projectFromLocation);
     if (projectFromLocation) {
       const { title = '', sections = {}, sectionOrder, articles = [] } = projectFromLocation;
       setTitle(title);
       const initialSections = Object.keys(sections).length > 0 ? sections : { Template: { content: '' } };
       setSections(
         Object.entries(initialSections).reduce((acc, [key, value]) => {
-          acc[key] = {
-            ...value,
-            content: EditorState.createWithContent(ContentState.createFromText(value.content || ''), decorator),
-          };
+          acc[key] = { ...value, content: EditorState.createWithContent(ContentState.createFromText(value.content || ''), decorator) };
           return acc;
         }, {})
       );
@@ -149,22 +132,19 @@ const Writer = () => {
     }
   }, [location.state?.project]);
 
-  // Effect for fetching associated research articles
   useEffect(() => {
     const fetchArticles = async () => {
       if (user && currentProject?.id) {
         try {
           const articlesCollection = collection(db, `users/${user.uid}/projects/${currentProject.id}/researcharticles`);
           const articlesSnapshot = await getDocs(articlesCollection);
-          const articlesList = articlesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          setArticles(articlesList);
+          setArticles(articlesSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
         } catch (error) { console.error("Error fetching articles: ", error); }
       }
     };
     fetchArticles();
   }, [user, currentProject?.id]);
 
-  // Cleanup effect for timeouts on unmount
   useEffect(() => {
     return () => {
       clearTimeout(suggestionTimeoutRef.current);
@@ -173,10 +153,7 @@ const Writer = () => {
   }, []);
 
   const handleChange = useCallback((editorState) => {
-    const updatedSections = {
-      ...sections,
-      [activeSection]: { ...sections[activeSection], content: editorState },
-    };
+    const updatedSections = { ...sections, [activeSection]: { ...sections[activeSection], content: editorState } };
     setSections(updatedSections);
     setIsEditing(true);
     setFeedbackMessage('Editing...');
@@ -189,19 +166,13 @@ const Writer = () => {
         const currentContent = editorState.getCurrentContent().getPlainText();
         if (currentContent.trim() && user) {
           try {
-            const token = await user.getIdToken();
-            const data = await apiClient.request('/api/predict', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-              body: JSON.stringify({ text: currentContent.trim() }),
-            });
+            const { data } = await httpsCallable(functions, 'predict')({ text: currentContent.trim() });
             if (data.suggestion) {
               setSuggestion(data.suggestion);
               setPreviousSuggestions(prev => [...prev, data.suggestion]);
             }
           } catch (error) {
             console.error('Error getting suggestion:', error);
-            setFeedbackMessage('Suggestion unavailable');
           } finally {
             setIsEditing(false);
           }
@@ -214,33 +185,53 @@ const Writer = () => {
       suggestionTimeoutRef.current = setTimeout(() => { setIsEditing(false); }, 1000);
     }
 
-    // Prepare content and trigger save with current values
     const contentToSave = Object.entries(updatedSections).reduce((acc, [key, value]) => {
       acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
       return acc;
     }, {});
-
     debouncedSaveContent(contentToSave, sectionOrder, title, articles);
-  }, [
-    sections,
-    activeSection,
-    sectionOrder,
-    title,
-    articles,
-    userWantsTextPrediction,
-    user,
-    debouncedSaveContent
-  ]);
+  }, [sections, activeSection, sectionOrder, title, articles, userWantsTextPrediction, user, debouncedSaveContent]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const contentToSave = Object.entries(sections).reduce((acc, [key, value]) => {
       acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
       return acc;
     }, {});
 
-    debouncedSaveContent(contentToSave, sectionOrder, title, articles);
-    setFeedbackMessage('Saved!');
-    setTimeout(() => setFeedbackMessage(''), 2000);
+    console.log('📝 SAVE BUTTON PRESSED', {
+      user: user ? { uid: user.uid, email: user.email } : 'NULL - NOT AUTHENTICATED',
+      currentProject: currentProject ? { id: currentProject.id, title: currentProject.title } : 'NULL - NEW PROJECT',
+      title,
+      contentToSave,
+      sectionOrder,
+      articles,
+    });
+
+    if (!user) {
+      console.error('❌ SAVE FAILED: user is null');
+      setFeedbackMessage('Error: not signed in');
+      return;
+    }
+
+    setIsSaving(true);
+    setFeedbackMessage('Saving...');
+    try {
+      const result = await saveContent(user, currentProject, contentToSave, sectionOrder, title, articles);
+      console.log('✅ SAVE SUCCESS', result);
+      if (result?.isNew) {
+        const newProjectData = { id: result.id, title, sections: contentToSave, sectionOrder, articles };
+        setCurrentProject(newProjectData);
+        window.history.replaceState({ ...window.history.state, usr: { ...(window.history.state.usr || {}), project: newProjectData } }, '');
+      }
+      setFeedbackMessage('Saved');
+      setTimeout(() => setFeedbackMessage(''), 2000);
+    } catch (error) {
+      console.error('❌ SAVE ERROR', error);
+      setFeedbackMessage('Error saving');
+      setTimeout(() => setFeedbackMessage(''), 3000);
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleTitleKeyDown = (e) => {
@@ -256,31 +247,22 @@ const Writer = () => {
 
   const handleDeleteSection = (sectionName) => {
     if (sectionName === 'Template' || Object.keys(sections).length <= 1) return;
-
     const newSections = { ...sections };
     delete newSections[sectionName];
     setSections(newSections);
     const newSectionOrder = sectionOrder.filter(name => name !== sectionName);
     setSectionOrder(newSectionOrder);
-    if (activeSection === sectionName) {
-      setActiveSection(newSectionOrder[0] || '');
-    }
-
+    if (activeSection === sectionName) setActiveSection(newSectionOrder[0] || '');
     const contentToSave = Object.entries(newSections).reduce((acc, [key, value]) => {
       acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
       return acc;
     }, {});
-
     debouncedSaveContent(contentToSave, newSectionOrder, title, articles);
   };
 
   const handleKeyCommand = (command, editorState) => {
     if (command === 'insert-suggestion' && suggestion && userWantsTextPrediction) {
-      const newState = Modifier.insertText(
-        editorState.getCurrentContent(),
-        editorState.getSelection(),
-        suggestion
-      );
+      const newState = Modifier.insertText(editorState.getCurrentContent(), editorState.getSelection(), suggestion);
       handleChange(EditorState.push(editorState, newState, 'insert-characters'));
       setSuggestion('');
       return 'handled';
@@ -307,21 +289,17 @@ const Writer = () => {
 
   const handleAddSection = (sectionTitle, content = null) => {
     if (!sectionTitle || sections[sectionTitle]) return;
-    const newSectionContent = content instanceof EditorState
-        ? content : EditorState.createEmpty(decorator);
+    const newSectionContent = content instanceof EditorState ? content : EditorState.createEmpty(decorator);
     const updatedSections = { ...sections, [sectionTitle]: { id: `section-${Date.now()}`, content: newSectionContent }};
     const updatedSectionOrder = [...sectionOrder, sectionTitle];
-
     setSections(updatedSections);
     setSectionOrder(updatedSectionOrder);
     setNewSection('');
     setActiveSection(sectionTitle);
-
     const contentToSave = Object.entries(updatedSections).reduce((acc, [key, value]) => {
       acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
       return acc;
     }, {});
-
     debouncedSaveContent(contentToSave, updatedSectionOrder, title, articles);
   };
 
@@ -331,25 +309,19 @@ const Writer = () => {
     const [reorderedItem] = items.splice(result.source.index, 1);
     items.splice(result.destination.index, 0, reorderedItem);
     setSectionOrder(items);
-
     const contentToSave = Object.entries(sections).reduce((acc, [key, value]) => {
       acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
       return acc;
     }, {});
-
     debouncedSaveContent(contentToSave, items, title, articles);
   };
 
   const combineSections = () => {
-    return sectionOrder
-      .map(name => sections[name]?.content.getCurrentContent().getPlainText())
-      .filter(Boolean)
-      .join('\n\n');
+    return sectionOrder.map(name => sections[name]?.content.getCurrentContent().getPlainText()).filter(Boolean).join('\n\n');
   };
 
   const handleDownload = () => {
-    const content = combineSections();
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+    const blob = new Blob([combineSections()], { type: 'text/plain;charset=utf-8' });
     saveAs(blob, `${title || 'Untitled'}.txt`);
   };
 
@@ -367,7 +339,7 @@ const Writer = () => {
 
   const handleCitationManagerClick = () => {
     if (articles.length > 0) {
-      const citationsContent = articles.map(formatCitation).join( '\n\n');
+      const citationsContent = articles.map(formatCitation).join('\n\n');
       const contentState = ContentState.createFromText(citationsContent);
       const editorState = EditorState.createWithContent(contentState, decorator);
       handleAddSection('Citations', editorState);
@@ -400,157 +372,269 @@ const Writer = () => {
   };
 
   return (
-    <div className="writer-container">
-      <Toolbar
-        onNewClick={() => navigate('/writer')}
-        onSaveClick={handleSave}
-        onDownloadClick={handleDownload}
-        onExportWordClick={handleExportAsMicrosoftWord}
-        onShowArticlesClick={toggleArticlesVisibility}
-        onCitationMangerClick={handleCitationManagerClick}
-      />
-      <div className='writer-main'>
-        <div className="outline-box">
-          <div className='feedback-container'>
-            {feedbackMessage && <div className="feedback-message">{feedbackMessage}</div>}
+    <div className="flex flex-col h-[calc(100vh-48px)]">
+      {/* Toolbar */}
+      <div className="flex items-center gap-1 px-3 py-1.5 border-b border-border bg-card shrink-0">
+        <Button variant="ghost" size="sm" onClick={handleSave} className="gap-1.5 text-xs">
+          <Save className="h-3.5 w-3.5" /> Save
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handleDownload} className="gap-1.5 text-xs">
+          <Download className="h-3.5 w-3.5" /> Export TXT
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handleExportAsMicrosoftWord} className="gap-1.5 text-xs">
+          <FileDown className="h-3.5 w-3.5" /> Export Word
+        </Button>
+        <Button variant="ghost" size="sm" onClick={handleCitationManagerClick} className="gap-1.5 text-xs">
+          <Quote className="h-3.5 w-3.5" /> Citations
+        </Button>
+        <Button variant="ghost" size="sm" onClick={toggleArticlesVisibility} className="gap-1.5 text-xs">
+          {isArticlesVisible ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
+          Articles
+        </Button>
+
+        {/* Save status */}
+        <div className="ml-auto">
+          {feedbackMessage && (
+            <span className={cn(
+              "text-xs px-2 py-0.5 rounded-full",
+              feedbackMessage === 'Saved' || feedbackMessage === 'Saved!'
+                ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
+                : feedbackMessage.includes('Error')
+                  ? "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300"
+                  : "bg-muted text-muted-foreground"
+            )}>
+              {feedbackMessage}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Main content area */}
+      <div className="flex flex-1 min-h-0">
+        {/* Outline panel */}
+        <div className="w-52 shrink-0 border-r border-border bg-muted/30 flex flex-col overflow-hidden">
+          <div className="px-3 py-2 border-b border-border">
+            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Outline</h2>
           </div>
-          <h2>Outline</h2>
-          <DragDropContext onDragEnd={onDragEnd}>
-            <Droppable droppableId="outline">
-              {(provided) => (
-                <ul {...provided.droppableProps} ref={provided.innerRef}>
-                  {sectionOrder.map((name, index) => (
-                    <Draggable key={name} draggableId={name} index={index}>
-                      {(provided) => (
-                        <li
-                          ref={provided.innerRef}
-                          {...provided.draggableProps}
-                          {...provided.dragHandleProps}
-                          className={`section-item ${activeSection === name ? 'active' : ''}`}
-                        >
-                          <span onClick={() => switchSection(name)}>{name}</span>
-                          {name !== 'Template' && (
+          <div className="flex-1 overflow-y-auto px-2 py-2">
+            <DragDropContext onDragEnd={onDragEnd}>
+              <Droppable droppableId="outline">
+                {(provided) => (
+                  <ul {...provided.droppableProps} ref={provided.innerRef} className="space-y-0.5">
+                    {sectionOrder.map((name, index) => (
+                      <Draggable key={name} draggableId={name} index={index}>
+                        {(provided, snapshot) => (
+                          <li
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            className={cn(
+                              "flex items-center group rounded-md text-sm transition-colors",
+                              activeSection === name
+                                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-950 dark:text-indigo-300"
+                                : "text-muted-foreground hover:bg-accent",
+                              snapshot.isDragging && "shadow-md"
+                            )}
+                          >
+                            <span {...provided.dragHandleProps} className="p-1 opacity-0 group-hover:opacity-50 cursor-grab">
+                              <GripVertical className="h-3 w-3" />
+                            </span>
                             <button
-                              className="delete-section-btn"
-                              onClick={(e) => { e.stopPropagation(); handleDeleteSection(name); }}
+                              className="flex-1 text-left py-1.5 pr-1 text-xs truncate"
+                              onClick={() => switchSection(name)}
                             >
-                              ×
+                              {name}
                             </button>
-                          )}
-                        </li>
-                      )}
-                    </Draggable>
-                  ))}
-                  {provided.placeholder}
-                </ul>
-              )}
-            </Droppable>
-          </DragDropContext>
-          <div className="new-section">
-            <input
-              type="text"
-              placeholder="Add new section..."
-              value={newSection}
-              onChange={(e) => setNewSection(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddSection(newSection)}
-            />
-            <button onClick={() => handleAddSection(newSection)}>Add</button>
+                            {name !== 'Template' && (
+                              <button
+                                className="p-1 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive"
+                                onClick={(e) => { e.stopPropagation(); handleDeleteSection(name); }}
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            )}
+                          </li>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </ul>
+                )}
+              </Droppable>
+            </DragDropContext>
           </div>
-          <button className="add-from-template" onClick={addSectionsFromTemplate}>
-            Add Sections from Template
-          </button>
+          <div className="p-2 border-t border-border space-y-1.5">
+            <div className="flex gap-1">
+              <input
+                type="text"
+                placeholder="New section..."
+                value={newSection}
+                onChange={(e) => setNewSection(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddSection(newSection)}
+                className="flex-1 min-w-0 text-xs rounded-md border border-input bg-background px-2 py-1 focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleAddSection(newSection)}>
+                <Plus className="h-3.5 w-3.5" />
+              </Button>
+            </div>
+            <Button variant="ghost" size="sm" className="w-full text-xs" onClick={addSectionsFromTemplate}>
+              Add from Template
+            </Button>
+          </div>
         </div>
 
-        <div className="writer">
-          <div className="title-section">
+        {/* Editor area */}
+        <div className="flex-1 flex flex-col min-w-0 bg-background">
+          {/* Title */}
+          <div className="px-8 pt-6 pb-2">
             {isTitleEditing ? (
               <input
                 type="text"
-                className="title-input"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 onBlur={handleTitleBlur}
                 onKeyDown={handleTitleKeyDown}
                 autoFocus
-                placeholder="Enter a title to start writing"
+                placeholder="Enter a title..."
+                className="w-full text-2xl font-semibold bg-transparent border-none outline-none text-foreground placeholder:text-muted-foreground"
               />
             ) : (
               <h2
-                className={`project-title ${!isTitleSet ? 'untitled' : ''}`}
+                className={cn(
+                  "text-2xl font-semibold cursor-pointer",
+                  isTitleSet ? "text-foreground" : "text-muted-foreground"
+                )}
                 onClick={() => setIsTitleEditing(true)}
               >
                 {isTitleSet ? title : 'Click to set title'}
               </h2>
             )}
           </div>
-          {sections[activeSection] ? (
-            <GoogleDocsWriter
-              editorState={sections[activeSection].content}
-              onChange={handleChange}
-              handleKeyCommand={handleKeyCommand}
-              keyBindingFn={keyBindingFn}
-              title={title}
-              activeSection={activeSection}
-            />
-          ) : (
-            <p>Select a section to start writing, or add a new one.</p>
-          )}
+
+          {/* Draft.js editor */}
+          <div className="flex-1 px-8 pb-8 overflow-y-auto">
+            {sections[activeSection] ? (
+              <div className="prose prose-slate dark:prose-invert max-w-none">
+                <GoogleDocsWriter
+                  editorState={sections[activeSection].content}
+                  onChange={handleChange}
+                  handleKeyCommand={handleKeyCommand}
+                  keyBindingFn={keyBindingFn}
+                  title={title}
+                  activeSection={activeSection}
+                />
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">Select a section to start writing, or add a new one.</p>
+            )}
+          </div>
         </div>
 
-        <div className="suggestion-overlay">
-            <div className='sugtitle'>{showSuggestionHistory ? 'History' : 'WriterPro Assistant'}</div>
-            <div className="suggestion-controls">
-              <button className="history-button" onClick={toggleSuggestionHistory}>
-                {showSuggestionHistory ? 'Current' : 'History'}
+        {/* AI Suggestions panel */}
+        <div className="w-72 shrink-0 border-l border-border bg-muted/30 flex flex-col overflow-hidden">
+          <div className="px-3 py-2 border-b border-border flex items-center justify-between">
+            <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+              {showSuggestionHistory ? 'History' : 'AI Assistant'}
+            </h2>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={toggleSuggestionHistory}
+                className="p-1 rounded-md text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                title={showSuggestionHistory ? 'Current' : 'History'}
+              >
+                <History className="h-3.5 w-3.5" />
               </button>
               <button
-                className="ai-toggle-button"
                 onClick={() => setUserWantsTextPrediction(prev => !prev)}
-                title={userWantsTextPrediction ? "Turn off AI text completion" : "Turn on AI text completion"}
+                className={cn(
+                  "p-1 rounded-md transition-colors",
+                  userWantsTextPrediction
+                    ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950"
+                    : "text-muted-foreground hover:bg-accent"
+                )}
+                title={userWantsTextPrediction ? "Turn off AI" : "Turn on AI"}
               >
-                {userWantsTextPrediction ? 'Turn Text Completion Off' : 'Turn Text Completion On'}
+                <Sparkles className="h-3.5 w-3.5" />
               </button>
             </div>
-            {!isEditing && !showSuggestionHistory && suggestion && userWantsTextPrediction && (
-              <span className="suggestion">{suggestion}</span>
-            )}
-            {!isEditing && showSuggestionHistory && (
-              <div className="suggestion-history">
-                <ul>
-                  {previousSuggestions.slice(-5).reverse().map((prevSuggestion, index) => (
-                    <li key={index} className="history-item">
-                      {prevSuggestion}
-                      <button
-                        className="insert-suggestion-button"
-                        onClick={() => handleSuggestionClick(prevSuggestion)}
-                      >
-                        Insert
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-3">
+            {isEditing && userWantsTextPrediction && (
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Thinking...
               </div>
             )}
-            <div className='spinnerbox'>
-              {isEditing && userWantsTextPrediction && <Spinner />}
-            </div>
+
+            {!isEditing && !showSuggestionHistory && suggestion && userWantsTextPrediction && (
+              <div className="space-y-2">
+                <p className="text-sm text-foreground leading-relaxed">{suggestion}</p>
+                <p className="text-[10px] text-muted-foreground">Press Tab to insert</p>
+              </div>
+            )}
+
+            {!isEditing && showSuggestionHistory && (
+              <div className="space-y-2">
+                {previousSuggestions.slice(-5).reverse().map((prevSuggestion, index) => (
+                  <div key={index} className="rounded-md border border-border p-2 text-xs">
+                    <p className="text-foreground line-clamp-3">{prevSuggestion}</p>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="mt-1 h-6 text-[10px]"
+                      onClick={() => handleSuggestionClick(prevSuggestion)}
+                    >
+                      Insert
+                    </Button>
+                  </div>
+                ))}
+                {previousSuggestions.length === 0 && (
+                  <p className="text-xs text-muted-foreground">No suggestion history yet.</p>
+                )}
+              </div>
+            )}
+
+            {!isEditing && !showSuggestionHistory && !suggestion && userWantsTextPrediction && (
+              <p className="text-xs text-muted-foreground">Start typing to get AI suggestions...</p>
+            )}
+
+            {!userWantsTextPrediction && (
+              <p className="text-xs text-muted-foreground">AI text completion is disabled.</p>
+            )}
+          </div>
         </div>
 
-        <div className={`side-panel ${isArticlesVisible ? 'visible' : ''}`}>
-          <h2>Research Articles</h2>
-          {articles.length > 0 ? (
-            <ul>
-              {articles.map((article) => (
-                <li key={article.id} className='articlebox'>
-                    <a href={article.url} target="_blank" rel="noopener noreferrer">{article.title}</a>
-                    <p>{article.author}</p>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No articles found for this project.</p>
-          )}
-        </div>
+        {/* Articles side panel */}
+        {isArticlesVisible && (
+          <div className="w-72 shrink-0 border-l border-border bg-muted/30 flex flex-col overflow-hidden">
+            <div className="px-3 py-2 border-b border-border flex items-center justify-between">
+              <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Research Articles</h2>
+              <button onClick={toggleArticlesVisibility} className="p-1 rounded-md text-muted-foreground hover:bg-accent">
+                <X className="h-3.5 w-3.5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3">
+              {articles.length > 0 ? (
+                <div className="space-y-2">
+                  {articles.map((article) => (
+                    <a
+                      key={article.id}
+                      href={article.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block rounded-md border border-border p-2 hover:border-indigo-300 transition-colors"
+                    >
+                      <p className="text-xs font-medium text-foreground line-clamp-2">{article.title}</p>
+                      <p className="text-[10px] text-muted-foreground mt-1">{article.author}</p>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-xs text-muted-foreground">No articles found for this project.</p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

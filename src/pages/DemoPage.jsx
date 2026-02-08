@@ -1,86 +1,144 @@
 import React, { useState } from 'react';
-import '../styles/DemoPage.css';
-import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, User, Bot, Settings, Zap } from 'lucide-react';
+import { Card, CardContent } from '../components/ui/Card';
+import { User, Bot, Zap, ChevronDown, ChevronRight } from 'lucide-react';
 
 const DemoPage = () => {
     const [activePanel, setActivePanel] = useState(null);
-    const navigate = useNavigate();
 
     const togglePanel = (panel) => {
         setActivePanel(activePanel === panel ? null : panel);
     };
 
-    const goToLandingPage = () => {
-        navigate('/HomePage')
-    }
+    const panels = [
+        {
+            id: 'about',
+            icon: User,
+            title: 'About BioScribe',
+            content: (
+                <>
+                    <p className="text-sm text-foreground mb-3">
+                        BioScribe harnesses the power of Artificial Intelligence to revolutionize scientific writing. Our AI assistant provides contextual text completions, customized templates, and intelligent suggestions to elevate your research communication.
+                    </p>
+                    <ul className="space-y-2 text-sm text-foreground">
+                        <li className="flex gap-2">
+                            <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                            <span>AI-powered writing assistance</span>
+                        </li>
+                        <li className="flex gap-2">
+                            <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                            <span>Contextual suggestions</span>
+                        </li>
+                        <li className="flex gap-2">
+                            <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                            <span>Custom templates for papers and grants</span>
+                        </li>
+                        <li className="flex gap-2">
+                            <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                            <span>Intelligent text completion</span>
+                        </li>
+                    </ul>
+                </>
+            )
+        },
+        {
+            id: 'howToUse',
+            icon: Bot,
+            title: 'How to Use',
+            content: (
+                <>
+                    <p className="text-sm text-foreground mb-3">
+                        Unlock BioScribe's features with simple commands:
+                    </p>
+                    <ul className="space-y-2 text-sm text-foreground mb-3">
+                        <li className="flex gap-2">
+                            <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-indigo-600 dark:text-indigo-400">@template</code>
+                            <span>Generate a custom template</span>
+                        </li>
+                        <li className="flex gap-2">
+                            <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-indigo-600 dark:text-indigo-400">@improve</code>
+                            <span>Improve your text</span>
+                        </li>
+                        <li className="flex gap-2">
+                            <code className="bg-muted px-1.5 py-0.5 rounded text-xs font-mono text-indigo-600 dark:text-indigo-400">@summarize</code>
+                            <span>Summarize your content</span>
+                        </li>
+                    </ul>
+                    <p className="text-xs text-muted-foreground">
+                        The AI will process your request and display the result in the Assistant panel. To insert the output into your document, simply press Tab.
+                    </p>
+                </>
+            )
+        },
+        {
+            id: 'features',
+            icon: Zap,
+            title: 'Key Features',
+            content: (
+                <ul className="space-y-2 text-sm text-foreground">
+                    <li className="flex gap-2">
+                        <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                        <span>AI-powered writing assistance</span>
+                    </li>
+                    <li className="flex gap-2">
+                        <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                        <span>Custom template generation</span>
+                    </li>
+                    <li className="flex gap-2">
+                        <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                        <span>Bioinformatics tools (BLAST, MAFFT, Protein structure prediction)</span>
+                    </li>
+                    <li className="flex gap-2">
+                        <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                        <span>Research article search (PubMed, Semantic Scholar)</span>
+                    </li>
+                    <li className="flex gap-2">
+                        <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                        <span>Figure explanation with AI</span>
+                    </li>
+                    <li className="flex gap-2">
+                        <span className="text-indigo-600 dark:text-indigo-400">•</span>
+                        <span>Real-time writing suggestions</span>
+                    </li>
+                </ul>
+            )
+        }
+    ];
 
     return (
-        <div className="demo-container">
-            <div className="demo-header-container">
-                <button className='demo-homebutton' onClick={goToLandingPage}>
-                    <ChevronLeft size={20} />
-                </button>
-                <h1 className="demo-header">WriterPro Documentation</h1>
+        <div>
+            <div className="mb-8 text-center">
+                <h1 className="text-4xl font-bold text-foreground mb-2">BioScribe Documentation</h1>
+                <p className="text-lg text-muted-foreground">
+                    Discover the power of AI-assisted writing with integrated bioinformatics tools. Explore our features below.
+                </p>
             </div>
-            <p className="demo-description">Discover the power of AI-assisted writing with WriterPro. Explore our features below.</p>
 
-            <div className="panel-container">
-                <div className="panel">
-                    <div className="panel-title" onClick={() => togglePanel('about')}>
-                        <User size={20} />
-                        <span>About WriterPro</span>
-                    </div>
-                    {activePanel === 'about' && (
-                        <div className="panel-content">
-                            <p>WriterPro harnesses the power of Artificial Intelligence to revolutionize your writing process. Our AI assistant provides contextual text completions, customized templates, and intelligent suggestions to elevate your writing.</p>
-                            <ul>
-                                <li>AI-powered writing assistance</li>
-                                <li>Contextual suggestions</li>
-                                <li>Custom templates</li>
-                                <li>Intelligent text completion</li>
-                            </ul>
-                        </div>
-                    )}
-                </div>
-
-                <div className="panel">
-                    <div className="panel-title" onClick={() => togglePanel('howToUse')}>
-                        <Bot size={20} />
-                        <span>How to Use</span>
-                    </div>
-                    {activePanel === 'howToUse' && (
-                        <div className="panel-content">
-                            <p>Unlock WriterPro's features with simple commands:</p>
-                            <ul>
-                                <li><code>@template</code> - Generate a custom template</li>
-                                <li><code>@translate</code> - Translate your text</li>
-                                <li><code>@summary</code> - Summarize your content</li>
-                            </ul>
-                            <p>The AI will process your request and display the result in the Assistant box. To insert the output into your essay, simply press the Tab key.</p>
-                        </div>
-                    )}
-                </div>
-
-                <div className="panel">
-                    <div className="panel-title" onClick={() => togglePanel('features')}>
-                        <Zap size={20} />
-                        <span>Key Features</span>
-                    </div>
-                    {activePanel === 'features' && (
-                        <div className="panel-content">
-                            <ul>
-                                <li>AI-powered writing assistance</li>
-                                <li>Custom template generation</li>
-                                <li>Text translation</li>
-                                <li>Content summarization</li>
-                                <li>Intelligent text completion</li>
-                                <li>Real-time writing suggestions</li>
-                            </ul>
-                        </div>
-                    )}
-                </div>
-
+            <div className="max-w-2xl mx-auto space-y-3">
+                {panels.map(({ id, icon: Icon, title, content }) => (
+                    <Card key={id}>
+                        <CardContent className="p-0">
+                            <button
+                                onClick={() => togglePanel(id)}
+                                className="w-full flex items-center justify-between px-4 py-3 text-foreground hover:bg-muted/50 transition-colors"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <Icon className="h-5 w-5 text-indigo-600 dark:text-indigo-400 shrink-0" />
+                                    <span className="font-medium">{title}</span>
+                                </div>
+                                {activePanel === id ? (
+                                    <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                                ) : (
+                                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                                )}
+                            </button>
+                            {activePanel === id && (
+                                <div className="px-4 py-3 border-t border-border bg-muted/30">
+                                    {content}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                ))}
             </div>
         </div>
     );

@@ -2,18 +2,14 @@ import './styles/polyfills.js';
 import './styles/shadcn-ui.css';
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import App from './App.jsx'
 import { validateEnv } from './utils/envValidator'
-
 import { AuthProvider } from './context/AuthContext';
-import AppWithRouter from './App.jsx';
+import { ThemeProvider } from './context/ThemeContext';
 import AppWrapper from './App.jsx';
 
-// Validate environment on startup
 const envValidation = validateEnv();
 
 if (!envValidation.isValid) {
-  // Show error to user
   const root = createRoot(document.getElementById('root'));
   root.render(
     <div style={{
@@ -40,8 +36,10 @@ if (!envValidation.isValid) {
   );
 } else {
   createRoot(document.getElementById('root')).render(
-    <AuthProvider>
-      <AppWrapper />
-    </AuthProvider>,
+    <ThemeProvider>
+      <AuthProvider>
+        <AppWrapper />
+      </AuthProvider>
+    </ThemeProvider>,
   );
 }
