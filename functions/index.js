@@ -101,7 +101,23 @@ export const predict = onCall({ secrets: [geminiKey], timeoutSeconds: 60 }, asyn
   await checkAccessAndLimit(request.auth.uid, request.auth.token.email);
 
   const prompt = text.toLowerCase().includes('@template')
-    ? `You are a professional writing assistant. Create a detailed template structure with sections for: ${text.replace(/@template/gi, '').trim()}`
+    ? `You are a professional writing assistant. Create a detailed template structure for a research paper on: ${text.replace(/@template/gi, '').trim()}
+
+Output ONLY the numbered sections with their sub-topics. Use this exact format with no deviations:
+
+1. Section Title
+• Sub-topic or key point
+• Sub-topic or key point
+
+2. Section Title
+• Sub-topic or key point
+• Sub-topic or key point
+
+Rules:
+- Section titles are plain text with a number and period (e.g. "1. Introduction")
+- No markdown headers (##), no bold (**), no italics
+- Sub-topics use bullet points (•)
+- No preamble, no closing remarks, just the numbered sections`
     : `You are a helpful writing assistant. Continue the following text naturally with 1-2 sentences:\n\n${text}`;
 
   const result = await new GoogleGenerativeAI(geminiKey.value())

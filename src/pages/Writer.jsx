@@ -382,33 +382,19 @@ const Writer = () => {
     const templateContent = sections['Template']?.content.getCurrentContent().getPlainText();
     if (!templateContent) return;
 
-    // Match patterns: "**1. Title**", "1. Title", "## Title", "# Title"
-    const sectionRegex = /^(?:\*{0,2})(\d+)\.\s+([^*\n]+?)(?:\*{0,2})\s*$/gm;
+    // Expects enforced format: "1. Title\n• point\n• point\n\n2. Title..."
+    const sectionRegex = /^(\d+)\.\s+(.+)$/gm;
     const matches = [...templateContent.matchAll(sectionRegex)];
 
-    if (matches.length > 0) {
-      matches.forEach((match, i) => {
-        const sectionTitle = match[2].replace(/\*\*/g, '').trim();
-        const start = match.index + match[0].length;
-        const end = matches[i + 1]?.index ?? templateContent.length;
-        const rawContent = templateContent.slice(start, end)
-          .replace(/\*\*/g, '')
-          .replace(/^#{1,6}\s+/gm, '')
-          .replace(/^\s*[*-]\s+/gm, '• ')
-          .trim();
-        if (sectionTitle && !sections[sectionTitle]) {
-          const editorState = EditorState.createWithContent(ContentState.createFromText(rawContent), decorator);
-          handleAddSection(sectionTitle, editorState);
-        }
-      });
-    } else {
-      // Fallback: try ## markdown headers
-      const headerRegex = /^#{1,3}\s+(.+)$/gm;
-      for (const match of templateContent.matchAll(headerRegex)) {
-        const sectionTitle = match[1].replace(/\*\*/g, '').trim();
-        if (sectionTitle && !sections[sectionTitle]) handleAddSection(sectionTitle);
+    matches.forEach((match, i) => {
+      const sectionTitle = match[2].trim();
+      const start = match.index + match[0].length;
+      const end = matches[i + 1]?.index ?? templateContent.length;
+      const content = templateContent.slice(start, end).trim();
+      if (sectionTitle && !sections[sectionTitle]) {
+        handleAddSection(sectionTitle, EditorState.createWithContent(ContentState.createFromText(content), decorator));
       }
-    }
+    });
   };
 
   return (
