@@ -64,6 +64,8 @@ const Writer = () => {
   const [isTitleEditing, setIsTitleEditing] = useState(false);
   const [userWantsTextPrediction, setUserWantsTextPrediction] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedText, setSelectedText] = useState('');
+  const [isFetchingSuggestion, setIsFetchingSuggestion] = useState(false);
 
   const suggestionTimeoutRef = useRef(null);
   const saveTimeoutRef = useRef(null);
@@ -152,38 +154,57 @@ const Writer = () => {
     };
   }, []);
 
+  const getSelectedText = (editorState) => {
+    const selection = editorState.getSelection();
+    if (selection.isCollapsed()) return '';
+    const content = editorState.getCurrentContent();
+    const startKey = selection.getStartKey();
+    const endKey = selection.getEndKey();
+    const startOffset = selection.getStartOffset();
+    const endOffset = selection.getEndOffset();
+    if (startKey === endKey) {
+      return content.getBlockForKey(startKey).getText().slice(startOffset, endOffset);
+    }
+    let text = content.getBlockForKey(startKey).getText().slice(startOffset) + '\n';
+    let block = content.getBlockAfter(startKey);
+    while (block && block.getKey() !== endKey) {
+      text += block.getText() + '\n';
+      block = content.getBlockAfter(block.getKey());
+    }
+    return text + content.getBlockForKey(endKey).getText().slice(0, endOffset);
+  };
+
+  const handleRequestSuggestion = async () => {
+    const contextText = selectedText ||
+      sections[activeSection]?.content.getCurrentContent().getPlainText().slice(-1500);
+    if (!contextText?.trim() || !user) return;
+    setIsFetchingSuggestion(true);
+    try {
+      const { data } = await httpsCallable(functions, 'predict')({ text: contextText.trim() });
+      if (data.suggestion) {
+        setSuggestion(data.suggestion);
+        setPreviousSuggestions(prev => [...prev, data.suggestion]);
+      }
+    } catch (error) {
+      console.error('Error getting suggestion:', error);
+    } finally {
+      setIsFetchingSuggestion(false);
+    }
+  };
+
   const handleChange = useCallback((editorState) => {
     const updatedSections = { ...sections, [activeSection]: { ...sections[activeSection], content: editorState } };
     setSections(updatedSections);
     setIsEditing(true);
     setFeedbackMessage('Editing...');
 
+    // Track selection for on-demand suggestions
+    setSelectedText(getSelectedText(editorState));
+
     if (suggestionTimeoutRef.current) clearTimeout(suggestionTimeoutRef.current);
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
-    if (userWantsTextPrediction) {
-      suggestionTimeoutRef.current = setTimeout(async () => {
-        const currentContent = editorState.getCurrentContent().getPlainText();
-        if (currentContent.trim() && user) {
-          try {
-            const { data } = await httpsCallable(functions, 'predict')({ text: currentContent.trim() });
-            if (data.suggestion) {
-              setSuggestion(data.suggestion);
-              setPreviousSuggestions(prev => [...prev, data.suggestion]);
-            }
-          } catch (error) {
-            console.error('Error getting suggestion:', error);
-          } finally {
-            setIsEditing(false);
-          }
-        } else {
-          setIsEditing(false);
-        }
-      }, 2000);
-    } else {
-      setSuggestion('');
-      suggestionTimeoutRef.current = setTimeout(() => { setIsEditing(false); }, 1000);
-    }
+    suggestionTimeoutRef.current = setTimeout(() => { setIsEditing(false); }, 500);
 
     const contentToSave = Object.entries(updatedSections).reduce((acc, [key, value]) => {
       acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
@@ -358,16 +379,35 @@ const Writer = () => {
   };
 
   const addSectionsFromTemplate = () => {
-    const templateContent = sections['Template'].content.getCurrentContent().getPlainText();
-    const sectionRegex = /([IVX]+)\.\s+([^\r\n]+)((?:\r?\n(?![IVX]+\.))*)*/g;
-    let match;
-    while ((match = sectionRegex.exec(templateContent)) !== null) {
-      const sectionTitle = match[2].trim();
-      const sectionContent = (match[3] || '').trim();
-      const formattedContent = sectionContent.split('\n').filter(line => line.trim()).map(line => `• ${line.trim()}`).join('\n');
-      const contentState = ContentState.createFromText(formattedContent);
-      const editorState = EditorState.createWithContent(contentState, decorator);
-      handleAddSection(sectionTitle, editorState);
+    const templateContent = sections['Template']?.content.getCurrentContent().getPlainText();
+    if (!templateContent) return;
+
+    // Match patterns: "**1. Title**", "1. Title", "## Title", "# Title"
+    const sectionRegex = /^(?:\*{0,2})(\d+)\.\s+([^*\n]+?)(?:\*{0,2})\s*$/gm;
+    const matches = [...templateContent.matchAll(sectionRegex)];
+
+    if (matches.length > 0) {
+      matches.forEach((match, i) => {
+        const sectionTitle = match[2].replace(/\*\*/g, '').trim();
+        const start = match.index + match[0].length;
+        const end = matches[i + 1]?.index ?? templateContent.length;
+        const rawContent = templateContent.slice(start, end)
+          .replace(/\*\*/g, '')
+          .replace(/^#{1,6}\s+/gm, '')
+          .replace(/^\s*[*-]\s+/gm, '• ')
+          .trim();
+        if (sectionTitle && !sections[sectionTitle]) {
+          const editorState = EditorState.createWithContent(ContentState.createFromText(rawContent), decorator);
+          handleAddSection(sectionTitle, editorState);
+        }
+      });
+    } else {
+      // Fallback: try ## markdown headers
+      const headerRegex = /^#{1,3}\s+(.+)$/gm;
+      for (const match of templateContent.matchAll(headerRegex)) {
+        const sectionTitle = match[1].replace(/\*\*/g, '').trim();
+        if (sectionTitle && !sections[sectionTitle]) handleAddSection(sectionTitle);
+      }
     }
   };
 
@@ -559,21 +599,35 @@ const Writer = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto p-3">
-            {isEditing && userWantsTextPrediction && (
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Thinking...
+            {userWantsTextPrediction && !showSuggestionHistory && (
+              <div className="mb-3">
+                <Button
+                  size="sm"
+                  className="w-full text-xs gap-1.5"
+                  onClick={handleRequestSuggestion}
+                  disabled={isFetchingSuggestion}
+                >
+                  {isFetchingSuggestion
+                    ? <><Loader2 className="h-3.5 w-3.5 animate-spin" /> Thinking...</>
+                    : <><Sparkles className="h-3.5 w-3.5" /> {selectedText ? 'Suggest for selection' : 'Suggest continuation'}</>
+                  }
+                </Button>
+                {selectedText && (
+                  <p className="text-[10px] text-muted-foreground mt-1.5 truncate">
+                    Selected: "{selectedText.slice(0, 40)}{selectedText.length > 40 ? '…' : ''}"
+                  </p>
+                )}
               </div>
             )}
 
-            {!isEditing && !showSuggestionHistory && suggestion && userWantsTextPrediction && (
+            {!showSuggestionHistory && suggestion && userWantsTextPrediction && (
               <div className="space-y-2">
                 <p className="text-sm text-foreground leading-relaxed">{suggestion}</p>
                 <p className="text-[10px] text-muted-foreground">Press Tab to insert</p>
               </div>
             )}
 
-            {!isEditing && showSuggestionHistory && (
+            {showSuggestionHistory && (
               <div className="space-y-2">
                 {previousSuggestions.slice(-5).reverse().map((prevSuggestion, index) => (
                   <div key={index} className="rounded-md border border-border p-2 text-xs">
@@ -594,9 +648,6 @@ const Writer = () => {
               </div>
             )}
 
-            {!isEditing && !showSuggestionHistory && !suggestion && userWantsTextPrediction && (
-              <p className="text-xs text-muted-foreground">Start typing to get AI suggestions...</p>
-            )}
 
             {!userWantsTextPrediction && (
               <p className="text-xs text-muted-foreground">AI text completion is disabled.</p>
