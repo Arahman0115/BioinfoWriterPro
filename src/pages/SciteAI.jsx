@@ -19,7 +19,7 @@ const SciteAI = () => {
                 const client = await SwaggerClient({
                     url: 'https://api.scite.ai/openapi.json',
                     requestInterceptor: (req) => {
-                        req.headers['Authorization'] = `Bearer ${process.env.REACT_APP_SCITE_API_KEY}`;
+                        req.headers['Authorization'] = `Bearer ${import.meta.env.VITE_SCITE_API_KEY}`;
                         return req;
                     }
                 });

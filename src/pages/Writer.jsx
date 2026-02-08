@@ -382,19 +382,37 @@ const Writer = () => {
     const templateContent = sections['Template']?.content.getCurrentContent().getPlainText();
     if (!templateContent) return;
 
-    // Expects enforced format: "1. Title\n• point\n• point\n\n2. Title..."
     const sectionRegex = /^(\d+)\.\s+(.+)$/gm;
     const matches = [...templateContent.matchAll(sectionRegex)];
+    if (matches.length === 0) return;
+
+    // Build all new sections in one pass to avoid stale closure overwrites
+    const newSections = { ...sections };
+    const newSectionOrder = [...sectionOrder];
 
     matches.forEach((match, i) => {
       const sectionTitle = match[2].trim();
       const start = match.index + match[0].length;
       const end = matches[i + 1]?.index ?? templateContent.length;
       const content = templateContent.slice(start, end).trim();
-      if (sectionTitle && !sections[sectionTitle]) {
-        handleAddSection(sectionTitle, EditorState.createWithContent(ContentState.createFromText(content), decorator));
+      if (sectionTitle && !newSections[sectionTitle]) {
+        newSections[sectionTitle] = {
+          id: `section-${Date.now()}-${i}`,
+          content: EditorState.createWithContent(ContentState.createFromText(content), decorator),
+        };
+        newSectionOrder.push(sectionTitle);
       }
     });
+
+    setSections(newSections);
+    setSectionOrder(newSectionOrder);
+    setActiveSection(newSectionOrder[newSectionOrder.length - 1]);
+
+    const contentToSave = Object.entries(newSections).reduce((acc, [key, value]) => {
+      acc[key] = { ...value, content: value.content.getCurrentContent().getPlainText() };
+      return acc;
+    }, {});
+    debouncedSaveContent(contentToSave, newSectionOrder, title, articles);
   };
 
   return (

@@ -5,6 +5,7 @@ import { Card, CardContent } from '../components/ui/Card';
 import { httpsCallable } from 'firebase/functions';
 import { functions } from '../firebase/firebase';
 import { Upload, Loader2 } from 'lucide-react';
+import DOMPurify from 'dompurify';
 
 const FigureExplanation = () => {
     const [selectedImage, setSelectedImage] = useState(null);
@@ -120,7 +121,7 @@ const FigureExplanation = () => {
                     <CardContent className="p-4">
                         <h2 className="text-sm font-medium text-foreground mb-3">Explanation</h2>
                         <div className="prose prose-sm dark:prose-invert max-w-none text-foreground">
-                            <div dangerouslySetInnerHTML={{ __html: explanation }} />
+                            <div dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(explanation) }} />
                         </div>
                     </CardContent>
                 </Card>
