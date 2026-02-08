@@ -6,7 +6,7 @@ import { cn } from '../../utils/cn';
 import deoxy from '../../assets/deoxy.png';
 import {
   Home, PenLine, Search, Database, BookOpen,
-  Dna, AlignLeft, GitBranch, Box, Wrench, Image, FileText,
+  Dna, AlignLeft, Wrench, Image, FileText,
   Settings, ChevronLeft, ChevronRight, Sun, Moon, LogOut, Menu, X
 } from 'lucide-react';
 
@@ -20,8 +20,6 @@ const navItems = [
   { type: 'separator', label: 'Tools' },
   { label: 'BLAST', icon: Dna, path: '/blast' },
   { label: 'MAFFT', icon: AlignLeft, path: '/mafft' },
-  { label: 'Phylogenetics', icon: GitBranch, path: '/phylo' },
-  { label: 'Protein Structure', icon: Box, path: '/protein' },
   { label: 'All Tools', icon: Wrench, path: '/tools' },
   { type: 'separator', label: 'Utilities' },
   { label: 'Figure Explanation', icon: Image, path: '/figure-explanation' },

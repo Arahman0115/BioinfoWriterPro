@@ -233,6 +233,8 @@ const ALLOWED_ORIGINS = new Set([
   'https://writpro.netlify.app',
 ]);
 
+const MAX_PROXY_BODY_BYTES = 100_000; // 100 KB max sequence payload
+
 export const proxy = onRequest(async (req, res) => {
   const origin = req.headers.origin;
   if (ALLOWED_ORIGINS.has(origin)) {
@@ -256,10 +258,23 @@ export const proxy = onRequest(async (req, res) => {
   const targetUrl = req.query.url;
   if (!targetUrl) return res.status(400).json({ error: 'Missing target URL' });
 
-  // SSRF protection — only allow NCBI BLAST
-  const allowed = 'https://blast.ncbi.nlm.nih.gov/Blast.cgi';
-  if (!targetUrl.startsWith(allowed)) {
+  // SSRF protection — parse and validate exact host + path
+  let parsed;
+  try { parsed = new URL(targetUrl); } catch {
+    return res.status(400).json({ error: 'Invalid URL' });
+  }
+  if (
+    parsed.protocol !== 'https:' ||
+    parsed.hostname !== 'blast.ncbi.nlm.nih.gov' ||
+    parsed.pathname !== '/Blast.cgi'
+  ) {
     return res.status(403).json({ error: 'Target URL not allowed' });
+  }
+
+  // Body size limit
+  const bodyStr = typeof req.body === 'string' ? req.body : JSON.stringify(req.body || '');
+  if (bodyStr.length > MAX_PROXY_BODY_BYTES) {
+    return res.status(413).json({ error: 'Request body too large' });
   }
 
   try {
@@ -279,6 +294,6 @@ export const proxy = onRequest(async (req, res) => {
     if (response.headers['set-cookie']) res.setHeader('Set-Cookie', response.headers['set-cookie']);
     res.status(response.status).send(response.data);
   } catch (err) {
-    res.status(500).send(err.toString());
+    res.status(502).json({ error: 'Failed to reach BLAST service' });
   }
 });
